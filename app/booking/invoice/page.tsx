@@ -144,7 +144,7 @@ function InvoiceContent() {
 
     try {
       // Temporarily use the invoice1 endpoint which is already working
-      const response = await fetch('http://localhost:8080/api/invoice1', {
+      const response = await fetch('https://api.worldtriplink.com/api/invoice1', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -256,7 +256,7 @@ function InvoiceContent() {
 
     try {
       // Use the websiteBooking endpoint 
-      const response = await fetch('http://localhost:8080/api/websiteBooking', {
+      const response = await fetch('https://api.worldtriplink.com/api/websiteBooking', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',

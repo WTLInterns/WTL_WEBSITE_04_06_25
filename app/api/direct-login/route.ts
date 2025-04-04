@@ -7,7 +7,7 @@ export async function POST(request: Request) {
     console.log('Direct login API route called with data:', requestData);
     
     // Forward the request directly to the backend with no transformations
-    const response = await fetch('http://localhost:8080/auth/userlogin', {
+    const response = await fetch('https://api.worldtriplink.com/auth/userlogin', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

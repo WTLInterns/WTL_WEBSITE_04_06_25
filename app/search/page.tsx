@@ -106,7 +106,7 @@ function SearchResultsContent() {
           }
           
           // Use the full URL to your Java backend API
-          const response = await fetch('http://localhost:8080/api/cab1', {
+          const response = await fetch('https://api.worldtriplink.com/api/cab1', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/x-www-form-urlencoded',
