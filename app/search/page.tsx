@@ -1,8 +1,44 @@
 "use client"
+import React from 'react'
 import { useState, useEffect, Suspense } from "react"
 import Footer from "@/components/footer"
 import { useSearchParams } from 'next/navigation'
 import Navbar2 from "../../components/Navbar2"
+
+interface Car {
+  type: string;
+  image?: string;
+  features?: string[];
+  rating?: number;
+  reviews?: number;
+  category?: string;
+}
+
+interface FeatureCard {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+}
+
+interface ButtonProps {
+  children: React.ReactNode;
+  className?: string;
+  onClick?: () => void;
+  key?: string | number;
+  type?: 'button' | 'submit' | 'reset';
+}
+
+function Button({ children, className, onClick, type = 'button' }: ButtonProps) {
+  return (
+    <button
+      type={type}
+      className={className}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
 
 export default function SearchResults() {
   return (
@@ -19,7 +55,40 @@ function SearchResultsContent() {
   const [selectedCategory, setSelectedCategory] = useState("All Cars")
   const [distance, setDistance] = useState<number | null>(null)
   const [tripInfo, setTripInfo] = useState<any>(null)
-  const [cabInfo, setCabInfo] = useState<any[]>([])
+  const [cabInfo, setCabInfo] = useState<Car[]>([
+    {
+      type: "Hatchback",
+      image: "/images/hatchback-car.jpg",
+      rating: 4.5,
+      reviews: 48,
+      features: ["4+1 Seater", "USB Charging", "Air Conditioning", "Music System"],
+      category: "Hatchback"
+    },
+    {
+      type: "Sedan",
+      image: "/images/sedan-car.jpg",
+      rating: 4.7,
+      reviews: 52,
+      features: ["4+1 Seater", "USB Charging", "Air Conditioning", "Music System"],
+      category: "Sedan"
+    },
+    {
+      type: "SUV",
+      image: "/images/suv.jpg",
+      rating: 4.8,
+      reviews: 56,
+      features: ["6+1 Seater", "USB Charging", "Climate Control", "Premium Sound System"],
+      category: "SUV"
+    },
+    {
+      type: "MUV",
+      image: "/images/muv.jpg",
+      rating: 4.7,
+      reviews: 52,
+      features: ["7+1 Seater", "USB Charging", "Climate Control", "Entertainment System"],
+      category: "MUV"
+    }
+  ])
   const [days, setDays] = useState<number>(0)
   const [isClient, setIsClient] = useState(false)
   const searchParams = useSearchParams()
@@ -65,16 +134,13 @@ function SearchResultsContent() {
     
     // Then, try to get distance from localStorage
     if (!distanceParam || distanceParam === '0') {
-      // Check localStorage for saved distance
       const savedDistance = localStorage.getItem('cabDistance')
       if (savedDistance) {
         setDistance(Number(savedDistance))
-        // Also store in localStorage to ensure it's available throughout the session
         localStorage.setItem('cabDistance', savedDistance)
       }
     } else {
       setDistance(Number(distanceParam))
-      // Also store in localStorage to ensure it's available throughout the session
       localStorage.setItem('cabDistance', distanceParam)
     }
 
@@ -87,16 +153,10 @@ function SearchResultsContent() {
           debugLog("Fetching pricing info for:", pickup, "to", drop)
           console.log("Fetching trip and pricing info for:", pickup, "to", drop)
           
-          // Convert trip type to match what the backend expects
-          let tripTypeValue = 'oneWay';
-          if (searchParams.get('tripType') === 'round-trip') {
-            tripTypeValue = 'roundTrip';
-          } else if (searchParams.get('tripType') === 'rental-trip') {
-            tripTypeValue = 'rentalTrip';
-          }
+          let tripTypeValue = searchParams.get('tripType') || 'oneWay';
           
           // Get distance from localStorage if available
-          let distanceValue = '0'; // Set to 0 to force backend to calculate distance
+          let distanceValue = '0';
           if (typeof window !== 'undefined') {
             const savedDistance = localStorage.getItem('cabDistance');
             if (savedDistance && Number(savedDistance) > 0) {
@@ -105,7 +165,7 @@ function SearchResultsContent() {
             }
           }
           
-          // Use the full URL to your Java backend API
+          // Use the full URL to your Java backend API with all required parameters
           const response = await fetch('https://api.worldtriplink.com/api/cab1', {
             method: 'POST',
             headers: {
@@ -118,83 +178,49 @@ function SearchResultsContent() {
               date: searchParams.get('date') || '',
               Returndate: searchParams.get('returnDate') || '',
               time: searchParams.get('time') || '',
-              distance: distanceValue // Pass the distance from localStorage if available
+              distance: distanceValue,
+              days: searchParams.get('days') || '1'
             })
           })
 
           if (response.ok) {
             const data = await response.json()
             debugLog("API response:", data)
-            console.log("API full response data:", data) // Always log this for debugging
+            console.log("API full response data:", data)
             
-            // If API doesn't return valid distance, use default
-            if (!data.distance || data.distance === 0 || data.distance < 0) {
-              // Backend returned invalid distance
-              console.error("⚠️ API returned invalid distance:", data.distance, "Using default distance: 100km");
-              setDistance(100);
-              
-              // Store the default distance in localStorage
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('cabDistance', '100');
-              }
-            } else {
+            if (data.distance && data.distance > 0) {
               setDistance(data.distance);
-              console.log("✅ Using API distance:", data.distance);
-              
-              // Store the API-provided distance in localStorage
-              if (typeof window !== 'undefined') {
-                localStorage.setItem('cabDistance', data.distance.toString());
-              }
+              localStorage.setItem('cabDistance', data.distance.toString());
             }
             
-            // If tripinfo is empty or doesn't have correct pricing, use default values
-            if (!data.tripinfo || data.tripinfo.length === 0 || 
-                !isValidTripInfo(data.tripinfo[0])) {
-              debugLog("Using default trip info - no valid data from API");
-              setTripInfo(createDefaultTripInfo())
+            if (data.tripinfo && data.tripinfo.length > 0) {
+              const tripData = data.tripinfo[0];
+              setTripInfo(tripData);
+              
+              // Store trip info in localStorage for invoice page
+              localStorage.setItem('currentTripInfo', JSON.stringify(tripData));
             } else {
-              debugLog("Using trip info from API:", data.tripinfo[0]);
-              console.log("Trip info from API (for pricing):", data.tripinfo[0]);
-              setTripInfo(data.tripinfo[0])
+              const defaultInfo = createDefaultTripInfo();
+              setTripInfo(defaultInfo);
+              localStorage.setItem('currentTripInfo', JSON.stringify(defaultInfo));
+            }
+            
+            if (data.days && data.days > 0) {
+              setDays(data.days);
+              localStorage.setItem('tripDays', data.days.toString());
             }
             
             if (data.cabinfo && data.cabinfo.length > 0) {
-              setCabInfo(data.cabinfo)
+              setCabInfo(data.cabinfo);
+              localStorage.setItem('availableCabs', JSON.stringify(data.cabinfo));
             }
-            
-            // Ensure days is always a positive number
-            const daysValue = data.days && data.days > 0 ? data.days : 0;
-            setDays(daysValue)
-            debugLog(`Setting days: ${daysValue}`)
           } else {
             console.error('Error response from API:', response.statusText)
-            
-            // Default distance if API fails
-            const defaultDistance = 100;
-            setDistance(defaultDistance)
-            
-            // Store the default distance in localStorage
-            if (typeof window !== 'undefined') {
-              localStorage.setItem('cabDistance', defaultDistance.toString());
-            }
-            
-            // Fall back to default prices if API fails
-            setTripInfo(createDefaultTripInfo())
+            handleApiError();
           }
         } catch (error) {
           console.error('Error fetching trip info:', error)
-          
-          // Default distance if API fails
-          const defaultDistance = 100;
-          setDistance(defaultDistance)
-          
-          // Store the default distance in localStorage
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('cabDistance', defaultDistance.toString());
-          }
-          
-          // Fall back to default prices if API fails
-          setTripInfo(createDefaultTripInfo())
+          handleApiError();
         }
       }
     }
@@ -202,178 +228,113 @@ function SearchResultsContent() {
     fetchTripInfo()
 
     // Set up interval to check for price updates every 30 seconds
-    const priceUpdateInterval = setInterval(() => {
-      fetchTripInfo()
-    }, 30000)
-    
+    const priceUpdateInterval = setInterval(fetchTripInfo, 30000)
     return () => clearInterval(priceUpdateInterval)
   }, [searchParams, isClient])
 
-  const getLatestPrice = (carType: string) => {
-    // Set base prices for each car type
-    let basePrice = 0;
-    switch(carType) {
-      case 'Hatchback':
-        basePrice = 12;
-        break;
-      case 'Sedan':
-        basePrice = 15;
-        break;
-      case 'Sedan Premium':
-        basePrice = 18;
-        break;
-      case 'SUV':
-        basePrice = 21;
-        break;
-      case 'MUV':
-        basePrice = 26;
-        break;
-    }
-
-    // First try to get distance from state, then localStorage as fallback, then default to 100km
-    let calculatedDistance = distance;
-    if (!calculatedDistance && typeof window !== 'undefined') {
-      const savedDistance = localStorage.getItem('cabDistance');
-      if (savedDistance && Number(savedDistance) > 0) {
-        calculatedDistance = Number(savedDistance);
-        debugLog(`Using distance from localStorage for ${carType}: ${calculatedDistance}km`);
-      }
-    }
-    calculatedDistance = calculatedDistance || 100; // Default to 100 km if still no distance
+  const handleApiError = () => {
+    const defaultInfo = createDefaultTripInfo();
+    setTripInfo(defaultInfo);
+    localStorage.setItem('currentTripInfo', JSON.stringify(defaultInfo));
     
-    debugLog(`Price calculation for ${carType}:`);
-    debugLog(`- Distance: ${calculatedDistance}km`);
-    debugLog(`- Default price per km: ${basePrice}`);
-    console.log(`Calculating price for ${carType} with distance: ${calculatedDistance}km`);
+    const defaultDistance = 100;
+    setDistance(defaultDistance);
+    localStorage.setItem('cabDistance', defaultDistance.toString());
+  }
 
-    // If no trip info, use base price × distance
-    if (!tripInfo) {
-      const totalPrice = Math.round(calculatedDistance * basePrice);
-      debugLog(`- No trip info available, using default: ${basePrice} × ${calculatedDistance} = ${totalPrice}`);
-      console.log(`No trip info available, using default price: ${basePrice}/km`);
-      return {
-        totalPrice
-      }
-    }
-
-    console.log("Trip info for price calculation:", tripInfo);
-
-    // Get price from database based on car type
-    let dbPrice = 0;
+  const getLatestPrice = (carType: string): number => {
     try {
-    switch(carType) {
-      case 'Hatchback':
-          dbPrice = tripInfo.hatchback ? Number(tripInfo.hatchback) : 0;
-        break;
-      case 'Sedan':
-          dbPrice = tripInfo.sedan ? Number(tripInfo.sedan) : 0;
-        break;
-      case 'Sedan Premium':
-          dbPrice = tripInfo.sedanpremium ? Number(tripInfo.sedanpremium) : 0;
-        break;
-      case 'SUV':
-          dbPrice = tripInfo.suv ? Number(tripInfo.suv) : 0;
-        break;
-      case 'MUV':
-          dbPrice = tripInfo.suvplus ? Number(tripInfo.suvplus) : 0;
-        break;
+      // Get the latest trip info from state or localStorage
+      const currentTripInfo = tripInfo || JSON.parse(localStorage.getItem('currentTripInfo') || '{}');
+      const currentDistance = distance || Number(localStorage.getItem('cabDistance')) || 100;
+      const currentDays = days || Number(localStorage.getItem('tripDays')) || 1;
+      
+      // Get base price from trip info
+      let basePrice = 0;
+      switch(carType.toLowerCase()) {
+        case 'hatchback':
+          basePrice = currentTripInfo?.hatchback ? Number(currentTripInfo.hatchback) : 12;
+          break;
+        case 'sedan':
+          basePrice = currentTripInfo?.sedan ? Number(currentTripInfo.sedan) : 15;
+          break;
+        case 'sedan premium':
+          basePrice = currentTripInfo?.sedanpremium ? Number(currentTripInfo.sedanpremium) : 18;
+          break;
+        case 'suv':
+          basePrice = currentTripInfo?.suv ? Number(currentTripInfo.suv) : 21;
+          break;
+        case 'muv':
+          basePrice = currentTripInfo?.suvplus ? Number(currentTripInfo.suvplus) : 26;
+          break;
       }
+
+      // Calculate total price based on trip type
+      const tripType = searchParams.get('tripType');
+      let totalPrice = 0;
+      
+      if (tripType === 'roundTrip' || tripType === 'round-trip') {
+        totalPrice = currentDistance * basePrice * currentDays;
+      } else {
+        totalPrice = currentDistance * basePrice;
+      }
+
+      return Math.round(totalPrice);
     } catch (error) {
-      console.error(`Error extracting ${carType} price from tripInfo:`, error);
-      dbPrice = 0;
-    }
-    
-    console.log(`Database price for ${carType}: ${dbPrice}/km`);
-    debugLog(`- Database price per km: ${dbPrice > 0 ? dbPrice : 'Not set'}`);
-
-    // Only use database price if it's greater than 0, otherwise use base price
-    const finalPricePerKm = dbPrice > 0 ? dbPrice : basePrice;
-    console.log(`Using ${dbPrice > 0 ? 'database' : 'default'} price for ${carType}: ${finalPricePerKm}/km`);
-    debugLog(`- Using ${dbPrice > 0 ? 'database' : 'default'} price: ${finalPricePerKm} per km`);
-
-    // Calculate total price based on distance
-    let totalPrice = 0;
-    const tripType = searchParams.get('tripType');
-    debugLog(`Trip type from URL: ${tripType}`);
-    debugLog(`Days value: ${days}`);
-    console.log(`Trip type: ${tripType}, Days: ${days}`);
-    
-    if ((tripType === 'roundTrip' || tripType === 'round-trip') && days > 1) {
-      // For multi-day round trips: (distance/2) * days
-      totalPrice = (calculatedDistance / 2) * days * finalPricePerKm;
-      debugLog(`- Multi-day round trip: (${calculatedDistance}/2) × ${days} days × ${finalPricePerKm} = ${totalPrice}`);
-    } else {
-      // For one-way or same-day round trips: just distance * rate
-      totalPrice = calculatedDistance * finalPricePerKm;
-      debugLog(`- One-way or same-day calculation: ${finalPricePerKm} × ${calculatedDistance} = ${totalPrice}`);
-    }
-    
-    // No additional charges - show pure calculated price
-    const finalTotal = Math.round(totalPrice);
-    debugLog(`- Final price: ${finalTotal}`);
-    console.log(`Final price for ${carType}: ₹${finalTotal}`);
-    
-    return {
-      totalPrice: finalTotal
+      console.error('Error calculating price:', error);
+      return 0;
     }
   }
 
-  const cars = [
-    {
-      name: "Hatchback",
-      image: "/images/hatchback-car.jpg",
-      rating: 4.5,
-      reviews: 48,
-      features: ["4+1 Seater", "USB Charging", "Air Conditioning", "Music System"],
-      ...getLatestPrice("Hatchback"),
-      discount: "13% OFF",
-      category: "Hatchback"
+  // Define static car information
+  const carTypes = {
+    'Hatchback': {
+      title: 'Swift Hatchback',
+      subtitle: 'Compact Hatchback • Manual • Efficient',
+      image: '/images/hatchback-car.jpg',
+      priceKey: 'hatchback'
     },
-    {
-      name: "Sedan",
-      image: "/images/sedan-car.jpg",
-      rating: 4.5,
-      reviews: 48,
-      features: ["4+1 Seater", "USB Charging", "Air Conditioning", "Music System"],
-      ...getLatestPrice("Sedan"),
-      discount: "13% OFF",
-      category: "Sedan"
+    'Sedan': {
+      title: 'Swift Dzire',
+      subtitle: 'Luxury Sedan • Manual • Sleek Design',
+      image: '/images/sedan-car.jpg',
+      priceKey: 'sedan'
     },
-    {
-      name: "Sedan Premium",
-      image: "/images/sedan-premium.jpg",
-      rating: 4.5,
-      reviews: 48,
-      features: ["6+1 Seater", "USB Charging", "Air Conditioning", "Music System"],
-      ...getLatestPrice("Sedan Premium"),
-      discount: "13% OFF",
-      category: "Sedan Premium"
+    'SUV': {
+      title: 'Toyota Innova',
+      subtitle: 'Premium SUV • Automatic • Spacious',
+      image: '/images/suv.jpg',
+      priceKey: 'suv'
     },
-    {
-      name: "SUV",
-      image: "/images/suv.jpg",
-      rating: 4.8,
-      reviews: 56,
-      features: ["6+1 Seater", "USB Charging", "Climate Control", "Premium Sound System"],
-      ...getLatestPrice("SUV"),
-      discount: "10% OFF",
-      category: "SUV"
-    },
-    {
-      name: "MUV",
-      image: "/images/muv.jpg",
-      rating: 4.7,
-      reviews: 52,
-      features: ["7+1 Seater", "USB Charging", "Climate Control", "Entertainment System"],
-      ...getLatestPrice("MUV"),
-      discount: "12% OFF",
-      category: "MUV"
+    'MUV': {
+      title: 'Toyota Innova Crysta',
+      subtitle: 'Luxury MUV • Automatic • Premium',
+      image: '/images/muv.jpg',
+      priceKey: 'suvplus'
     }
-  ]
+  };
 
-  const filteredCars = selectedCategory === "All Cars" 
-    ? cars 
-    : cars.filter(car => car.category === selectedCategory)
+  const getCarPriceKey = (carType: string): string => {
+    switch(carType.toLowerCase()) {
+      case 'hatchback':
+        return 'hatchback';
+      case 'sedan':
+        return 'sedan';
+      case 'sedan premium':
+        return 'sedanpremium';
+      case 'suv':
+        return 'suv';
+      case 'muv':
+        return 'suvplus';
+      default:
+        return carType.toLowerCase();
+    }
+  };
+
+  // Filter cars based on selected category
+  const displayedCars = selectedCategory === "All Cars" 
+    ? cabInfo 
+    : cabInfo.filter(car => car.category === selectedCategory);
 
   // Helper function to check if trip info has valid pricing
   const isValidTripInfo = (tripInfo: any) => {
@@ -402,41 +363,50 @@ function SearchResultsContent() {
     return hasHatchback || hasSedan || hasSedanPremium || hasSUV || hasSUVPlus;
   }
 
-  return (
-    <main className="min-h-screen bg-gray-50">
-      <Navbar2 />
-      
-      <div className="container mx-auto px-4 py-8">
-        {/* Remove or comment out the Trip Details section */}
-        {/* {distance && (
-          <div className="bg-white rounded-lg shadow-md p-4 mb-8">
-            <h2 className="text-xl font-semibold mb-2">Trip Details</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-gray-600">Total Distance</p>
-                <p className="text-2xl font-bold">{distance} km</p>
-              </div>
-              {searchParams.get('tripType') === 'roundTrip' && days > 0 && (
-                <div>
-                  <p className="text-gray-600">Total Days</p>
-                  <p className="text-2xl font-bold">{days} days</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )} */}
+  const featureCards: FeatureCard[] = [
+    {
+      title: "Digital Check-in",
+      description: "Quick vehicle access with our app",
+      icon: (
+        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+        </svg>
+      )
+    },
+    {
+      title: "Premium Insurance",
+      description: "Comprehensive coverage included",
+      icon: (
+        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      )
+    },
+    {
+      title: "24/7 Support",
+      description: "Round-the-clock assistance",
+      icon: (
+        <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      )
+    }
+  ];
 
-        <h1 className="text-2xl font-bold text-center mb-8">Browse by Category</h1>
-        
-        <div className="flex flex-wrap gap-4 justify-center mb-12">
+  return (
+    <div className="min-h-screen bg-[#F3F4F9]">
+      <Navbar2 />
+      <div className="container mx-auto px-4 py-8">
+        {/* Category filters */}
+        <div className="flex gap-4 mb-8 overflow-x-auto">
           {categories.map((category) => (
             <button
               key={category.name}
               onClick={() => setSelectedCategory(category.name)}
-              className={`px-6 py-2 rounded-full ${
+              className={`px-4 py-2 rounded-full whitespace-nowrap ${
                 selectedCategory === category.name
-                ? "bg-[#1a1f2e] text-white"
-                : "bg-white text-[#1a1f2e] border-2 border-[#1a1f2e]"
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 hover:bg-gray-50'
               }`}
             >
               {category.name} {category.count && `(${category.count})`}
@@ -444,101 +414,176 @@ function SearchResultsContent() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCars.map((car) => (
-            <div key={car.name} className="bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="relative">
-                <img
-                  src={car.image}
-                  alt={car.name}
-                  className="w-full h-48 object-cover"
-                />
-                <span className="absolute top-4 right-4 bg-red-500 text-white px-2 py-1 rounded text-sm">
-                  {car.discount}
-                </span>
-              </div>
-              
-              <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="text-xl font-semibold">{car.name}</h3>
-                  <div className="flex items-center">
-                    <div className="flex text-yellow-400">
-                      {"★".repeat(Math.floor(car.rating))}
-                      {"☆".repeat(5 - Math.floor(car.rating))}
+        {/* Car listings */}
+        <div className="grid grid-cols-1 gap-6">
+          {displayedCars.map((car: Car, index) => {
+            const price = getLatestPrice(car.type);
+            const carInfo = carTypes[car.type as keyof typeof carTypes];
+            
+            if (!carInfo) return null;
+
+            return (
+              <div key={index} className="bg-white rounded-xl overflow-hidden shadow-md">
+                <div className="flex flex-col md:flex-row">
+                  {/* Car Image Section */}
+                  <div className="relative w-full md:w-2/5 h-64">
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-blue-500/20">
+                      <img
+                        src={car.image || carInfo.image}
+                        alt={carInfo.title}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                    <span className="text-sm text-gray-500 ml-2">({car.reviews} reviews)</span>
+                    <div className="absolute top-4 left-4 flex items-center gap-2">
+                      <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">Premium</span>
+                      <div className="flex items-center bg-white/90 px-2 py-1 rounded-full">
+                        <span className="text-yellow-500 mr-1">★</span>
+                        <span className="text-sm">{car.rating || 4.7}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <ul className="space-y-2 mb-4">
-                  {car.features.map((feature) => (
-                    <li key={feature} className="flex items-center text-gray-600">
-                      <span className="mr-2">•</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+                  {/* Car Details Section */}
+                  <div className="flex-1 p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold">{carInfo.title}</h3>
+                        <p className="text-gray-600 text-sm">{carInfo.subtitle}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-green-600 text-sm">Limited Time Offer</span>
+                        <div className="text-2xl font-bold">₹{price}/day</div>
+                      </div>
+                    </div>
 
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-sm text-gray-500">Starting Price</p>
-                    <p className="text-xl font-bold text-[#1a1f2e]">
-                      ₹{car.totalPrice}
-                    </p>
+                    {/* Trip Details */}
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                          </svg>
+                          Distance
+                        </div>
+                        <p className="text-sm">{distance || 149} km included</p>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                          Fuel Type
+                        </div>
+                        <p className="text-sm">CNG with refill breaks</p>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 text-gray-600">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Duration
+                        </div>
+                        <p className="text-sm">24 Hour rental</p>
+                      </div>
+                    </div>
+
+                    {/* Cancellation Policy */}
+                    <div className="flex items-center gap-2 text-gray-600 mb-4">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span className="text-sm">Free cancellation up to 1 hour before pickup</span>
+                    </div>
+
+                    <button
+                      className="w-full md:w-auto px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                      onClick={() => {
+                        if (!distance) {
+                          alert("Please select pickup and drop locations to get the final price");
+                          return;
+                        }
+
+                        const priceKey = getCarPriceKey(car.type);
+                        const basePrice = tripInfo?.[priceKey] || 0;
+
+                        // Store complete booking data in localStorage
+                        const bookingData = {
+                          name: carInfo.title,
+                          image: car.image || carInfo.image,
+                          price: price,
+                          basePrice: basePrice,
+                          category: car.type,
+                          pickupLocation: searchParams.get('pickup') || '',
+                          dropLocation: searchParams.get('drop') || '',
+                          date: searchParams.get('date') || '',
+                          returnDate: searchParams.get('returnDate') || '',
+                          time: searchParams.get('time') || '',
+                          tripType: searchParams.get('tripType') || 'oneWay',
+                          distance: distance,
+                          days: days,
+                          features: car.features || [],
+                          rating: car.rating || 4.7,
+                          reviews: car.reviews || 50,
+                          priceDetails: {
+                            basePrice: basePrice,
+                            totalPrice: price,
+                            distance: distance,
+                            days: days,
+                            pricePerKm: basePrice
+                          }
+                        };
+
+                        localStorage.setItem('bookingData', JSON.stringify(bookingData));
+                        
+                        // Include all necessary parameters in the URL
+                        const params = new URLSearchParams({
+                          carType: car.type,
+                          name: carInfo.title,
+                          image: car.image || carInfo.image,
+                          price: price.toString(),
+                          basePrice: basePrice.toString(),
+                          category: car.type,
+                          pickupLocation: searchParams.get('pickup') || '',
+                          dropLocation: searchParams.get('drop') || '',
+                          date: searchParams.get('date') || '',
+                          returnDate: searchParams.get('returnDate') || '',
+                          time: searchParams.get('time') || '',
+                          tripType: searchParams.get('tripType') || 'oneWay',
+                          distance: distance?.toString() || '0',
+                          days: days.toString(),
+                          features: JSON.stringify(car.features || []),
+                          rating: (car.rating || 4.7).toString(),
+                          reviews: (car.reviews || 50).toString()
+                        });
+                        
+                        window.location.href = `/booking/invoice?${params.toString()}`;
+                      }}
+                    >
+                      Reserve Now
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => {
-                      if (!distance) {
-                        alert("Please select pickup and drop locations to get the final price")
-                        return
-                      }
-                      const params = new URLSearchParams({
-                        name: car.name,
-                        image: car.image,
-                        price: car.totalPrice.toString(),
-                        features: car.features.join(','),
-                        category: car.category,
-                        pickupLocation: searchParams.get('pickup') || '',
-                        dropLocation: searchParams.get('drop') || '',
-                        date: searchParams.get('date') || '',
-                        returnDate: searchParams.get('returnDate') || '',
-                        time: searchParams.get('time') || '',
-                        tripType: searchParams.get('tripType') || 'oneWay',
-                        distance: distance?.toString() || '0',
-                        days: days.toString()
-                      })
-                      
-                      // Store in localStorage for invoice page to retrieve
-                      localStorage.setItem('bookingData', JSON.stringify({
-                        name: car.name,
-                        image: car.image,
-                        price: car.totalPrice,
-                        features: car.features,
-                        category: car.category,
-                        pickupLocation: searchParams.get('pickup') || '',
-                        dropLocation: searchParams.get('drop') || '',
-                        date: searchParams.get('date') || '',
-                        returnDate: searchParams.get('returnDate') || '',
-                        time: searchParams.get('time') || '',
-                        tripType: searchParams.get('tripType') || 'oneWay',
-                        distance: distance?.toString() || '0',
-                        days: days.toString()
-                      }))
-                      
-                      window.location.href = `/booking/invoice?${params.toString()}`
-                    }}
-                    className="bg-[#1a1f2e] text-white px-6 py-2 rounded hover:bg-[#1a1f2e]/90"
-                  >
-                    Book Now
-                  </button>
                 </div>
               </div>
+            );
+          })}
+        </div>
+
+        {/* Features Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+          {featureCards.map((feature, index) => (
+            <div key={index} className="bg-white p-6 rounded-xl shadow-sm">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  {feature.icon}
+                </div>
+                <h3 className="font-semibold">{feature.title}</h3>
+              </div>
+              <p className="text-gray-600 text-sm">{feature.description}</p>
             </div>
           ))}
         </div>
       </div>
-
       <Footer />
-    </main>
+    </div>
   )
 } 
