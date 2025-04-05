@@ -45,26 +45,27 @@ const ServicePage = () => {
       <Navbar2 />
       
       {/* Hero Section */}
-      <div className="relative h-[50vh] w-full">
+      <div className="relative h-[30vh] md:h-[50vh] w-full">
         <Image
           src="/images/service2.jpg"
           alt="WTL Services"
           fill
           className="object-cover"
           priority
-          sizes="100vw"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+          quality={90}
         />
         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center"
+            className="text-center px-4"
           >
-            <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
               Our Services
             </h1>
-            <p className="text-xl text-white/90 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl text-white/90 max-w-2xl mx-auto">
               Experience premium travel with our diverse range of services
             </p>
           </motion.div>
@@ -72,7 +73,7 @@ const ServicePage = () => {
       </div>
 
       {/* Services Section */}
-      <div className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="py-12 md:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {services.map((service, index) => (
           <motion.div
             key={index}
@@ -83,19 +84,20 @@ const ServicePage = () => {
                     index === 2 ? (inView3 ? { opacity: 1, y: 0 } : {}) :
                     (inView4 ? { opacity: 1, y: 0 } : {})}
             transition={{ duration: 0.8 }}
-            className={`mb-20 ${index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} flex flex-col lg:flex-row gap-12 items-center`}
+            className={`mb-12 md:mb-20 ${index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} flex flex-col lg:flex-row gap-8 lg:gap-12 items-center`}
           >
-            <div className="lg:w-1/2">
+            <div className="w-full lg:w-1/2">
               <motion.div
                 whileHover={{ scale: 1.02 }}
-                className="relative h-[400px] w-full rounded-2xl overflow-hidden shadow-2xl"
+                className="relative h-[250px] sm:h-[300px] md:h-[400px] w-full rounded-xl md:rounded-2xl overflow-hidden shadow-lg md:shadow-2xl"
               >
                 <Image
                   src={service.image}
                   alt={service.title}
                   fill
                   className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 50vw"
+                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 100vw, (max-width: 1024px) 50vw, 50vw"
+                  quality={90}
                 />
               </motion.div>
             </div>
