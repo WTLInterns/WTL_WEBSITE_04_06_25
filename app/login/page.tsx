@@ -17,12 +17,7 @@ interface LoginResponse {
   userId?: string;
 }
 
-interface LoginModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
+export default function LoginPage() {
   const router = useRouter();
   const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null);
   const [mobileNo, setMobileNo] = useState('');
@@ -31,25 +26,6 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
-  // Handle escape key press
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [onClose]);
-
-  // Handle click outside modal
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
 
   // Ensure searchParams are fetched after the page has been hydrated
   useEffect(() => {
@@ -143,7 +119,6 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
               router.push('/');
             }
           }
-          onClose(); // Close the modal after successful login
         }, 2000);
       } else {
         setPassword('');
@@ -190,15 +165,30 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
     }
   }, []);
 
-  if (!isOpen) return null;
+  // Disable right-click and Ctrl+U
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+    
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'u') {
+        e.preventDefault();
+      }
+    };
+    
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
-    <div className={`${styles['login-modal-overlay']} ${isOpen ? styles.visible : ''}`} onClick={handleOverlayClick}>
-      <div className={styles['login-modal']}>
-        <button className={styles['close-button']} onClick={onClose}>
-          ✕
-        </button>
-
+    <div className={styles['login-page']}>
+      <div className={styles['red-background']}>
         <h1 className={styles['form-heading']}>Log in to your account</h1>
         <p className={styles['sign-in-text']}>
           Don't have an account? <Link href="/Register" className={styles['link-info']}>Create an account</Link>
@@ -255,8 +245,10 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
           </div>
 
           <button 
-            className={`${styles['login-button']} ${isLoading ? styles.loading : ''}`}
+            className={`${styles['login-button']} ${isLoading ? styles['loading'] : ''}`}
             type="submit" 
+            name="login-submit"
+            id="login-submit"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -268,10 +260,12 @@ const LoginModal = ({ isOpen, onClose }: LoginModalProps) => {
               'Log in'
             )}
           </button>
+
+          <p className={styles['sign-in-text']} style={{ marginTop: '20px' }}>
+            <Link href="/forgot-password" className={styles['link-info']}>Forgot password?</Link>
+          </p>
         </form>
       </div>
     </div>
   );
-};
-
-export default LoginModal;
+}
