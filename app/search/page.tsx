@@ -40,6 +40,14 @@ function Button({ children, className, onClick, type = 'button' }: ButtonProps) 
   );
 }
 
+interface CarType {
+  title: string;
+  subtitle: string;
+  image: string;
+  priceKey: string;
+  options?: string[];
+}
+
 export default function SearchResults() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -82,7 +90,7 @@ function SearchResultsContent() {
     },
     {
       type: "MUV",
-      image: "/images/muv.jpg",
+      image: "/images/innova.jpg",
       rating: 4.7,
       reviews: 52,
       features: ["7+1 Seater", "USB Charging", "Climate Control", "Entertainment System"],
@@ -92,6 +100,12 @@ function SearchResultsContent() {
   const [days, setDays] = useState<number>(0)
   const [isClient, setIsClient] = useState(false)
   const searchParams = useSearchParams()
+  const [selectedCar, setSelectedCar] = useState("Maruti Wagonr")
+  const [selectedCarImage, setSelectedCarImage] = useState("/images/wagonr.jpg")
+  const [selectedSedan, setSelectedSedan] = useState("Maruti Swift Dzire")
+  const [selectedSedanImage, setSelectedSedanImage] = useState("/images/swift.jpg")
+  const [selectedSUV, setSelectedSUV] = useState("Maruti Ertiga")
+  const [selectedSUVImage, setSelectedSUVImage] = useState("/images/ertiga.jpg")
   
   // Debug logger function
   const debugLog = (...args: any[]) => {
@@ -100,15 +114,6 @@ function SearchResultsContent() {
     }
   }
   
-  const categories = [
-    { name: "All Cars", count: null },
-    { name: "Hatchback", count: 3 },
-    { name: "Sedan", count: 4 },
-    { name: "Sedan Premium", count: 3 },
-    { name: "SUV", count: 2 },
-    { name: "MUV", count: 1 }
-  ]
-
   // First, mark when we're on the client
   useEffect(() => {
     setIsClient(true)
@@ -286,30 +291,66 @@ function SearchResultsContent() {
     }
   }
 
+  const hatchbackCars = {
+    "Maruti Wagonr": "/images/wagonr.jpg",
+    "Toyota Glanza": "/images/glanza.jpg",
+    "Celerio": "/images/celerio.png"
+  }
+
+  const sedanCars = {
+    "Maruti Swift Dzire": "/images/swift.jpg",
+    "Honda Amaze": "/images/amaze.jpg",
+    "Hyundai Aura/Xcent": "/images/aura.jpg",
+    "Toyota etios": "/images/etios.jpg"
+  }
+
+  const suvCars = {
+    "Maruti Ertiga": "/images/ertiga.jpg",
+    "Mahindra Marazzo": "/images/marazzo.jpg"
+  }
+
+  const handleCarChange = (carName: string) => {
+    setSelectedCar(carName);
+    setSelectedCarImage(hatchbackCars[carName as keyof typeof hatchbackCars]);
+  };
+
+  const handleSedanChange = (carName: string) => {
+    setSelectedSedan(carName);
+    setSelectedSedanImage(sedanCars[carName as keyof typeof sedanCars]);
+  };
+
+  const handleSUVChange = (carName: string) => {
+    setSelectedSUV(carName);
+    setSelectedSUVImage(suvCars[carName as keyof typeof suvCars]);
+  };
+
   // Define static car information
-  const carTypes = {
+  const carTypes: Record<string, CarType> = {
     'Hatchback': {
-      title: 'Swift Hatchback',
+      title: 'Hatchback',
       subtitle: 'Compact Hatchback • Manual • Efficient',
-      image: '/images/hatchback-car.jpg',
-      priceKey: 'hatchback'
+      image: selectedCarImage,
+      priceKey: 'hatchback',
+      options: ['Maruti Wagonr', 'Toyota Glanza', 'Celerio']
     },
     'Sedan': {
-      title: 'Swift Dzire',
+      title: 'Sedan',
       subtitle: 'Luxury Sedan • Manual • Sleek Design',
-      image: '/images/sedan-car.jpg',
-      priceKey: 'sedan'
+      image: selectedSedanImage,
+      priceKey: 'sedan',
+      options: ['Maruti Swift Dzire', 'Honda Amaze', 'Hyundai Aura/Xcent', 'Toyota etios']
     },
     'SUV': {
-      title: 'Toyota Innova',
+      title: 'SUV',
       subtitle: 'Premium SUV • Automatic • Spacious',
-      image: '/images/suv.jpg',
-      priceKey: 'suv'
+      image: selectedSUVImage,
+      priceKey: 'suv',
+      options: ['Maruti Ertiga', 'Mahindra Marazzo']
     },
     'MUV': {
-      title: 'Toyota Innova Crysta',
+      title: 'MUV',
       subtitle: 'Luxury MUV • Automatic • Premium',
-      image: '/images/muv.jpg',
+      image: '/images/innova.jpg',
       priceKey: 'suvplus'
     }
   };
@@ -396,24 +437,7 @@ function SearchResultsContent() {
   return (
     <div className="min-h-screen bg-[#F3F4F9]">
       <Navbar2 />
-      <div className="container mx-auto px-4 py-8">
-        {/* Category filters */}
-        <div className="flex gap-4 mb-8 overflow-x-auto">
-          {categories.map((category) => (
-            <button
-              key={category.name}
-              onClick={() => setSelectedCategory(category.name)}
-              className={`px-4 py-2 rounded-full whitespace-nowrap ${
-                selectedCategory === category.name
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
-              }`}
-            >
-              {category.name} {category.count && `(${category.count})`}
-            </button>
-          ))}
-        </div>
-
+      <div className="container mx-auto px-4 pt-20 pb-8">
         {/* Car listings */}
         <div className="grid grid-cols-1 gap-6">
           {displayedCars.map((car: Car, index) => {
@@ -429,9 +453,16 @@ function SearchResultsContent() {
                   <div className="relative w-full md:w-2/5 h-64">
                     <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-blue-500/20">
                       <img
-                        src={car.image || carInfo.image}
+                        src={car.type === "Hatchback" ? selectedCarImage : 
+                             car.type === "Sedan" ? selectedSedanImage : 
+                             car.type === "SUV" ? selectedSUVImage :
+                             car.image || '/images/innova.jpg'}
                         alt={carInfo.title}
                         className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/images/innova.jpg';
+                        }}
                       />
                     </div>
                     <div className="absolute top-4 left-4 flex items-center gap-2">
@@ -449,6 +480,63 @@ function SearchResultsContent() {
                       <div>
                         <h3 className="text-xl font-semibold">{carInfo.title}</h3>
                         <p className="text-gray-600 text-sm">{carInfo.subtitle}</p>
+                        {car.type === "Hatchback" && (
+                          <div className="mt-2 flex items-center gap-4">
+                            {carInfo.options?.map((option) => (
+                              <div key={option} className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id={option}
+                                  name="carOption"
+                                  checked={selectedCar === option}
+                                  onChange={() => handleCarChange(option)}
+                                  className="h-4 w-4 text-blue-600"
+                                />
+                                <label htmlFor={option} className="text-sm text-gray-700">
+                                  {option}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {car.type === "Sedan" && (
+                          <div className="mt-2 flex items-center gap-4">
+                            {carInfo.options?.map((option) => (
+                              <div key={option} className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id={option}
+                                  name="sedanOption"
+                                  checked={selectedSedan === option}
+                                  onChange={() => handleSedanChange(option)}
+                                  className="h-4 w-4 text-blue-600"
+                                />
+                                <label htmlFor={option} className="text-sm text-gray-700">
+                                  {option}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {car.type === "SUV" && (
+                          <div className="mt-2 flex items-center gap-4">
+                            {carInfo.options?.map((option) => (
+                              <div key={option} className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id={option}
+                                  name="suvOption"
+                                  checked={selectedSUV === option}
+                                  onChange={() => handleSUVChange(option)}
+                                  className="h-4 w-4 text-blue-600"
+                                />
+                                <label htmlFor={option} className="text-sm text-gray-700">
+                                  {option}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="text-right">
                         <span className="text-green-600 text-sm">Limited Time Offer</span>
@@ -506,10 +594,20 @@ function SearchResultsContent() {
                         const priceKey = getCarPriceKey(car.type);
                         const basePrice = tripInfo?.[priceKey] || 0;
 
+                        // Get the correct selected image based on car type
+                        let selectedImage = car.image;
+                        if (car.type === "Hatchback") {
+                          selectedImage = selectedCarImage;
+                        } else if (car.type === "Sedan") {
+                          selectedImage = selectedSedanImage;
+                        } else if (car.type === "SUV") {
+                          selectedImage = selectedSUVImage;
+                        }
+
                         // Store complete booking data in localStorage
                         const bookingData = {
                           name: carInfo.title,
-                          image: car.image || carInfo.image,
+                          image: selectedImage,
                           price: price,
                           basePrice: basePrice,
                           category: car.type,
@@ -539,7 +637,7 @@ function SearchResultsContent() {
                         const params = new URLSearchParams({
                           carType: car.type,
                           name: carInfo.title,
-                          image: car.image || carInfo.image,
+                          image: selectedImage || '',
                           price: price.toString(),
                           basePrice: basePrice.toString(),
                           category: car.type,
@@ -554,7 +652,7 @@ function SearchResultsContent() {
                           features: JSON.stringify(car.features || []),
                           rating: (car.rating || 4.7).toString(),
                           reviews: (car.reviews || 50).toString()
-                        });
+                        } as Record<string, string>);
                         
                         window.location.href = `/booking/invoice?${params.toString()}`;
                       }}
