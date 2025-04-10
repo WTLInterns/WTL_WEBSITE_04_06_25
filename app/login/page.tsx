@@ -6,17 +6,6 @@ import { useRouter } from 'next/navigation';
 import styles from './login.module.css';
 import Cookies from 'js-cookie';
 
-interface LoginResponse {
-  success: boolean;
-  message: string;
-  username?: string;
-  role?: string;
-  token?: string;
-  email?: string;
-  address?: string;
-  userId?: string;
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const [searchParams, setSearchParams] = useState<URLSearchParams | null>(null);
@@ -27,94 +16,61 @@ export default function LoginPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Ensure searchParams are fetched after the page has been hydrated
   useEffect(() => {
     setSearchParams(new URLSearchParams(window.location.search));
-  }, []); // This effect will run only on the client side
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
-      console.log('Submitting login form with mobile number:', mobileNo);
-      
-      const response = await fetch('/api/login', {
+      const response = await fetch('http://localhost:8080/auth/userlogin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          mobileNo,
+          mobile: mobileNo,
           password 
         }),
       });
-      
-      console.log('Login response status:', response.status);
-      
-      let data;
-      try {
-        data = await response.json();
-        console.log('Login response:', data);
-      } catch (err) {
-        console.error('Failed to parse JSON response:', err);
-        throw new Error('Invalid response format from server');
-      }
-      
-      if (response.ok && data.success) {
-        // Store user info in cookies with secure flags
-        if (data.username) {
-          Cookies.set('username', data.username, { secure: true, sameSite: 'strict' });
-        }
-        if (data.role) {
-          const role = data.role.toUpperCase();
-          Cookies.set('userRole', role, { secure: true, sameSite: 'strict' });
-        }
-        if (data.token) {
-          Cookies.set('token', data.token, { secure: true, sameSite: 'strict' });
-        }
-        
-        // Store mobile number
+
+      const data = await response.json();
+      console.log('Login response:', data);
+
+      // Corrected status code check
+      if (response.ok && data.message === 'Login Successful') {
+        const role = data.role?.toUpperCase() || 'USER';
+
+        // Set cookies
+        Cookies.set('userId', data.id, { secure: true, sameSite: 'strict' });
         Cookies.set('mobileNo', mobileNo, { secure: true, sameSite: 'strict' });
-        
-        // Store additional user data
-        if (data.email) {
-          Cookies.set('email', data.email, { secure: true, sameSite: 'strict' });
-        }
-        if (data.address) {
-          Cookies.set('address', data.address, { secure: true, sameSite: 'strict' });
-        }
-        if (data.userId) {
-          Cookies.set('userId', data.userId, { secure: true, sameSite: 'strict' });
-        }
-        
-        // Store consolidated user data
+        Cookies.set('userRole', role, { secure: true, sameSite: 'strict' });
+
         const userData = {
-          username: data.username || '',
-          email: data.email || '',
-          mobileNo: mobileNo,
-          role: (data.role || 'USER').toUpperCase(),
-          address: data.address || '',
-          userId: data.userId || '',
+          userId: data.id,
+          mobileNo,
+          role,
           isLoggedIn: true
         };
         Cookies.set('user', JSON.stringify(userData), { secure: true, sameSite: 'strict' });
 
         setSuccessMessage('Login successful! Redirecting...');
         setShowSuccessMessage(true);
-        
-        // Get redirect URL from query parameters or use default based on role
+
         const redirectTo = searchParams?.get('redirect');
         setTimeout(() => {
           if (redirectTo) {
             router.push(redirectTo);
           } else {
-            const role = data.role.toUpperCase();
             if (role === 'ADMIN') {
               router.push('/admin/dashboard');
             } else if (role === 'VENDOR') {
               router.push('/vendor/dashboard');
+            } else if (role === 'DRIVER') {
+              router.push('/driver/dashboard');
             } else {
               router.push('/');
             }
@@ -122,8 +78,7 @@ export default function LoginPage() {
         }, 2000);
       } else {
         setPassword('');
-        console.error('Login failed:', data.message);
-        setError(data.message || 'Login failed. Please check your credentials and try again.');
+        setError(data.message || 'Login failed. Please try again.');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -134,7 +89,7 @@ export default function LoginPage() {
     }
   };
 
-  // Clear error when user starts typing
+  // Rest of the code remains the same
   const handleInputChange = (setter: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setter(e.target.value);
     if (error) {
@@ -142,44 +97,31 @@ export default function LoginPage() {
     }
   };
 
-  // Clear error message when URL changes
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('error')) {
       setError('Invalid mobile number or password.');
     }
-    
-    // Check if coming from successful registration
-    if (typeof window !== 'undefined') {
-      const registrationSuccess = Cookies.get('registrationSuccess');
-      const registrationMessage = Cookies.get('registrationMessage');
-      
-      if (registrationSuccess === 'true') {
-        setShowSuccessMessage(true);
-        setSuccessMessage(registrationMessage || 'Registration successful! Please log in.');
-        
-        // Clear the registration success flags
-        Cookies.remove('registrationSuccess');
-        Cookies.remove('registrationMessage');
-      }
+
+    const registrationSuccess = Cookies.get('registrationSuccess');
+    const registrationMessage = Cookies.get('registrationMessage');
+
+    if (registrationSuccess === 'true') {
+      setShowSuccessMessage(true);
+      setSuccessMessage(registrationMessage || 'Registration successful! Please log in.');
+      Cookies.remove('registrationSuccess');
+      Cookies.remove('registrationMessage');
     }
   }, []);
 
-  // Disable right-click and Ctrl+U
   useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-    };
-    
+    const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === 'u') {
-        e.preventDefault();
-      }
+      if (e.ctrlKey && e.key === 'u') e.preventDefault();
     };
-    
+
     document.addEventListener('contextmenu', handleContextMenu);
     document.addEventListener('keydown', handleKeyDown);
-    
     return () => {
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);

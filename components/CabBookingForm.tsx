@@ -27,6 +27,7 @@ declare global {
             getPlace: () => {
               formatted_address?: string;
               name?: string;
+              address_components?: any[];
             };
           };
         };
@@ -37,62 +38,84 @@ declare global {
 
 export default function CabBookingForm() {
   const router = useRouter()
-  const [tripType, setTripType] = useState("one-way")
+  const [tripType, setTripType] = useState("oneWay")
   const [pickupLocation, setPickupLocation] = useState("")
   const [dropLocation, setDropLocation] = useState("")
   const [pickupDate, setPickupDate] = useState("")
-  const [returnDate, setReturnDate] = useState("")
+  const [Returndate, setReturndate] = useState("")
   const [pickupTime, setPickupTime] = useState("")
   const [error, setError] = useState("")
+  const [locationError, setLocationError] = useState("")
   const [calculatedDistance, setCalculatedDistance] = useState<number | null>(null)
   const [scriptLoaded, setScriptLoaded] = useState(false)
-  const [autocompleteInitialized, setAutocompleteInitialized] = useState(false)
 
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([])
   const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false)
 
   const pickupRef = useRef<HTMLInputElement>(null)
   const dropRef = useRef<HTMLInputElement>(null)
+  const pickupAutocompleteRef = useRef<any>(null)
+  const dropAutocompleteRef = useRef<any>(null)
 
   const apiKey = "AIzaSyCelDo4I5cPQ72TfCTQW-arhPZ7ALNcp8w"
   const today = new Date().toISOString().split("T")[0]
 
+  // Check if place is in India
+  const isPlaceInIndia = (place: any) => {
+    if (!place.address_components) return false
+    
+    for (const component of place.address_components) {
+      if (component.types.includes('country') && component.short_name === 'IN') {
+        return true
+      }
+    }
+    return false
+  }
+
   // Initialize Google Autocomplete
   const initializeAutocomplete = () => {
     if (typeof window !== "undefined" && window.google && window.google.maps && window.google.maps.places) {
-      if (pickupRef.current && !pickupRef.current.dataset.autocomplete) {
-        const pickupAutocomplete = new window.google.maps.places.Autocomplete(
+      if (pickupRef.current) {
+        pickupAutocompleteRef.current = new window.google.maps.places.Autocomplete(
           pickupRef.current,
           {
             componentRestrictions: { country: "in" },
             types: ["geocode", "establishment"],
-            fields: ["formatted_address", "name"]
+            fields: ["formatted_address", "name", "address_components"]
           }
         )
-        pickupAutocomplete.addListener("place_changed", () => {
-          const place = pickupAutocomplete.getPlace()
-          setPickupLocation(place?.formatted_address || place?.name || "")
+        pickupAutocompleteRef.current.addListener("place_changed", () => {
+          const place = pickupAutocompleteRef.current.getPlace()
+          if (isPlaceInIndia(place)) {
+            setPickupLocation(place?.formatted_address || place?.name || "")
+            setLocationError("")
+          } else {
+            setPickupLocation("")
+            setLocationError("We currently only provide services within India")
+          }
         })
-        pickupRef.current.dataset.autocomplete = "true"
       }
 
-      if (dropRef.current && !dropRef.current.dataset.autocomplete) {
-        const dropAutocomplete = new window.google.maps.places.Autocomplete(
+      if (dropRef.current) {
+        dropAutocompleteRef.current = new window.google.maps.places.Autocomplete(
           dropRef.current,
           {
             componentRestrictions: { country: "in" },
             types: ["geocode", "establishment"],
-            fields: ["formatted_address", "name"]
+            fields: ["formatted_address", "name", "address_components"]
           }
         )
-        dropAutocomplete.addListener("place_changed", () => {
-          const place = dropAutocomplete.getPlace()
-          setDropLocation(place?.formatted_address || place?.name || "")
+        dropAutocompleteRef.current.addListener("place_changed", () => {
+          const place = dropAutocompleteRef.current.getPlace()
+          if (isPlaceInIndia(place)) {
+            setDropLocation(place?.formatted_address || place?.name || "")
+            setLocationError("")
+          } else {
+            setDropLocation("")
+            setLocationError("We currently only provide services within India")
+          }
         })
-        dropRef.current.dataset.autocomplete = "true"
       }
-      
-      setAutocompleteInitialized(true)
     }
   }
 
@@ -196,7 +219,6 @@ export default function CabBookingForm() {
     }
   }, [])
 
-  // Rest of your component code remains the same...
   const fetchTimeSlots = async (date: string) => {
     setIsLoadingTimeSlots(true)
     try {
@@ -213,7 +235,7 @@ export default function CabBookingForm() {
       setPickupDate(date)
       fetchTimeSlots(date)
     } else {
-      setReturnDate(date)
+      setReturndate(date)
     }
   }
 
@@ -265,11 +287,11 @@ export default function CabBookingForm() {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-          tripType: tripType === "one-way" ? "oneWay" : tripType === "round-trip" ? "roundTrip" : "rentalTrip",
+          tripType: tripType === "oneWay" ? "oneWay" : tripType === "roundTrip" ? "roundTrip" : "rentalTrip",
           pickupLocation: origin,
           dropLocation: destination,
           date: pickupDate || '',
-          Returndate: returnDate || '',
+          Returndate: Returndate || '',
           time: pickupTime || '',
           distance: '0'
         })
@@ -282,37 +304,17 @@ export default function CabBookingForm() {
         const distance = data.distance
         console.log("✅ Using API calculated distance:", distance)
         setCalculatedDistance(distance)
-        
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('cabDistance', distance.toString())
-          console.log("Distance stored in localStorage:", distance)
-        }
-        
         return distance
       } else {
         console.warn(`Backend API failed to return valid distance. Using default value.`)
-        
         const defaultDistance = 100
         setCalculatedDistance(defaultDistance)
-        
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('cabDistance', defaultDistance.toString())
-          console.log("Default distance stored in localStorage:", defaultDistance)
-        }
-        
         return defaultDistance
       }
     } catch (error) {
       console.error("Error calculating distance:", error)
-      
       const defaultDistance = 100
       setCalculatedDistance(defaultDistance)
-      
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('cabDistance', defaultDistance.toString())
-        console.log("Default distance stored in localStorage (error case):", defaultDistance)
-      }
-      
       return defaultDistance
     }
   }
@@ -333,7 +335,7 @@ export default function CabBookingForm() {
       setError("Please select pickup date")
       return
     }
-    if (tripType === "round-trip" && !returnDate) {
+    if (tripType === "roundTrip" && !Returndate) {
       setError("Please select return date")
       return
     }
@@ -345,17 +347,13 @@ export default function CabBookingForm() {
     try {
       const distance = await calculateDistance(pickupLocation, dropLocation)
       
-      if (distance && typeof window !== 'undefined') {
-        localStorage.setItem('cabDistance', distance.toString())
-      }
-      
       const searchParams = new URLSearchParams({
         pickup: pickupLocation,
         drop: dropLocation,
         date: pickupDate,
         time: pickupTime,
         tripType: tripType,
-        returnDate: returnDate || '',
+        Returndate: Returndate || '',
         distance: distance ? distance.toString() : '0'
       })
       
@@ -386,8 +384,8 @@ export default function CabBookingForm() {
               <input
                 type="radio"
                 name="tripType"
-                value="one-way"
-                checked={tripType === "one-way"}
+                value="oneWay"
+                checked={tripType === "oneWay"}
                 onChange={(e) => setTripType(e.target.value)}
                 className="form-radio text-emerald-500 focus:ring-emerald-500"
                 required
@@ -398,8 +396,8 @@ export default function CabBookingForm() {
               <input
                 type="radio"
                 name="tripType"
-                value="round-trip"
-                checked={tripType === "round-trip"}
+                value="roundTrip"
+                checked={tripType === "roundTrip"}
                 onChange={(e) => setTripType(e.target.value)}
                 className="form-radio text-emerald-500 focus:ring-emerald-500"
                 required
@@ -538,16 +536,16 @@ export default function CabBookingForm() {
             </div>
 
             {/* Return Date */}
-            {tripType === "round-trip" && (
+            {tripType === "roundTrip" && (
               <div>
                 <label className="block text-sm font-medium text-white mb-1">
                   Return Date
                 </label>
                 <div className="relative">
                   <input
-                    id="returnDate"
+                    id="Returndate"
                     type="date"
-                    value={returnDate}
+                    value={Returndate}
                     onChange={(e) => handleDateSelection(e.target.value, "return")}
                     min={pickupDate || today}
                     className="w-full p-3 pl-10 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/20 text-white [&::-webkit-calendar-picker-indicator]:opacity-0"
@@ -555,7 +553,7 @@ export default function CabBookingForm() {
                   />
                   <button
                     type="button"
-                    onClick={() => openDatePicker("returnDate")}
+                    onClick={() => openDatePicker("Returndate")}
                     className="absolute inset-y-0 left-0 pl-3 flex items-center text-white/70 hover:text-white"
                   >
                     <svg
