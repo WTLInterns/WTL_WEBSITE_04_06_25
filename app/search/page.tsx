@@ -80,6 +80,14 @@ function SearchResultsContent() {
       category: "Sedan"
     },
     {
+      type: "Sedan Premium",
+      image: "/images/city.jpg",
+      rating: 4.8,
+      reviews: 45,
+      features: ["4+1 Seater", "USB Charging", "Climate Control", "Premium Sound System"],
+      category: "Sedan Premium"
+    },
+    {
       type: "SUV",
       image: "/images/suv.jpg",
       rating: 4.8,
@@ -105,6 +113,8 @@ function SearchResultsContent() {
   const [selectedSedanImage, setSelectedSedanImage] = useState("/images/swift.jpg")
   const [selectedSUV, setSelectedSUV] = useState("Maruti Ertiga")
   const [selectedSUVImage, setSelectedSUVImage] = useState("/images/ertiga.jpg")
+  const [selectedSedanPremium, setSelectedSedanPremium] = useState("Honda City")
+  const [selectedSedanPremiumImage, setSelectedSedanPremiumImage] = useState("/images/city.jpg")
   // const[trip,setTripInfo] = useState([])
   
   const debugLog = (...args: any[]) => {
@@ -266,6 +276,12 @@ function SearchResultsContent() {
     "Mahindra Marazzo": "/images/marazzo.jpg"
   };
 
+  const sedanPremiumCars: Record<string, string> = {
+    "Honda City": "/images/city.jpg",
+    "Hyundai Verna": "/images/verna.jpg",
+    "Maruti Ciaz": "/images/ciaz.jpg"
+  };
+
   const handleCarChange = (carName: string) => {
     setSelectedCar(carName);
     setSelectedCarImage(hatchbackCars[carName]);
@@ -279,6 +295,11 @@ function SearchResultsContent() {
   const handleSUVChange = (carName: string) => {
     setSelectedSUV(carName);
     setSelectedSUVImage(suvCars[carName]);
+  };
+
+  const handleSedanPremiumChange = (carName: string) => {
+    setSelectedSedanPremium(carName);
+    setSelectedSedanPremiumImage(sedanPremiumCars[carName]);
   };
 
   const carTypes: Record<string, CarType> = {
@@ -295,6 +316,13 @@ function SearchResultsContent() {
       image: selectedSedanImage,
       priceKey: 'sedan',
       options: ['Maruti Swift Dzire', 'Honda Amaze', 'Hyundai Aura/Xcent', 'Toyota etios']
+    },
+    'Sedan Premium': {
+      title: 'Sedan Premium',
+      subtitle: 'Premium Sedan • Automatic • Luxury',
+      image: selectedSedanPremiumImage,
+      priceKey: 'sedanpremium',
+      options: ['Honda City', 'Hyundai Verna', 'Maruti Ciaz']
     },
     'SUV': {
       title: 'SUV',
@@ -365,6 +393,7 @@ function SearchResultsContent() {
                         src={car.type === "Hatchback" ? selectedCarImage : 
                              car.type === "Sedan" ? selectedSedanImage : 
                              car.type === "SUV" ? selectedSUVImage :
+                             car.type === "Sedan Premium" ? selectedSedanPremiumImage :
                              car.image || '/images/innova.jpg'}
                         alt={carInfo.title}
                         className="w-full h-full object-cover"
@@ -417,6 +446,25 @@ function SearchResultsContent() {
                                   name="sedanOption"
                                   checked={selectedSedan === option}
                                   onChange={() => handleSedanChange(option)}
+                                  className="h-4 w-4 text-blue-600"
+                                />
+                                <label htmlFor={option} className="text-sm text-gray-700">
+                                  {option}
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {car.type === "Sedan Premium" && (
+                          <div className="mt-2 flex items-center gap-4">
+                            {carInfo.options?.map((option) => (
+                              <div key={option} className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id={option}
+                                  name="sedanPremiumOption"
+                                  checked={selectedSedanPremium === option}
+                                  onChange={() => handleSedanPremiumChange(option)}
                                   className="h-4 w-4 text-blue-600"
                                 />
                                 <label htmlFor={option} className="text-sm text-gray-700">
@@ -507,6 +555,8 @@ function SearchResultsContent() {
                           selectedImage = selectedSedanImage;
                         } else if (car.type === "SUV") {
                           selectedImage = selectedSUVImage;
+                        } else if (car.type === "Sedan Premium") {
+                          selectedImage = selectedSedanPremiumImage;
                         }
 
                         const params = new URLSearchParams({

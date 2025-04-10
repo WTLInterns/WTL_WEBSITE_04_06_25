@@ -187,8 +187,8 @@ export default function Home() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <CabCard type="Luxury" description="Premium comfort and style" imageSrc="/images/luxury-car.jpg" />
-                  <CabCard type="Hatchback" description="Compact and efficient" imageSrc="/images/hatchback-car.jpg" />
-                  <CabCard type="Sedan" description="Perfect balance of comfort" imageSrc="/images/sedan-car.jpg" />
+                  <CabCard type="Hatchback" description="Compact and efficient" imageSrc="/images/glanza.jpg" />
+                  <CabCard type="Sedan" description="Perfect balance of comfort" imageSrc="/images/aura.jpg" />
                 </div>
               </div>
             </section>
