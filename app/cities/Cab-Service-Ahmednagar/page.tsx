@@ -12,6 +12,7 @@ import FlightBookingForm from "@/components/FlightBookingForm";
 import HomestaysBookingForm from "@/components/HomestaysBookingForm";
 import HolidayBookingForm from "@/components/HolidayBookingForm";
 import Script from "next/script";
+import FloatingIcons from "@/components/FloatingIcons"
 
 // Counter hook for animated numbers
 const useCounter = (target: number, duration: number = 2000) => {
@@ -531,6 +532,7 @@ export default function AhmednagarCabServicePage() {
           </main>
 
           <Footer />
+          <FloatingIcons />
         </div>
       </>
     );

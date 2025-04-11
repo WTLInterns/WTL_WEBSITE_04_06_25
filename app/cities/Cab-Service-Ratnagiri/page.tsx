@@ -12,6 +12,7 @@ import { useIntersectionCounter } from '@/app/hooks/useIntersectionCounter';
 import FlightBookingForm from "@/components/FlightBookingForm";
 import HomestaysBookingForm from "@/components/HomestaysBookingForm";
 import HolidayBookingForm from "@/components/HolidayBookingForm";
+import FloatingIcons from "@/components/FloatingIcons";
 
 // Counter hook for animated numbers
 const useCounter = (target: number, duration: number = 2000) => {
@@ -562,9 +563,11 @@ export default function RatnagiriCabServicePage() {
         </main>
 
         <Footer />
+        <FloatingIcons />
       </div>
     );
   } catch (error) {
+    console.error("Error rendering Ratnagiri Cab Service page:", error);
     setHasError(true);
     return null;
   }

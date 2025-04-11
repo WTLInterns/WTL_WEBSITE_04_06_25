@@ -12,6 +12,7 @@ import FlightBookingForm from "@/components/FlightBookingForm"
 import HotelBookingForm from "@/components/HotelBookingForm"
 import HomestaysBookingForm from "@/components/HomestaysBookingForm"
 import HolidayBookingForm from "@/components/HolidayBookingForm"
+import FloatingIcons from "@/components/FloatingIcons"
 
 // FAQ Item Component
 function FaqItem({ question, answer }: { question: string, answer: string }) {
@@ -385,6 +386,7 @@ export default function PuneCabServicePage() {
         </section>
         
         <Footer />
+        <FloatingIcons />
       </div>
     );
   } catch (error) {

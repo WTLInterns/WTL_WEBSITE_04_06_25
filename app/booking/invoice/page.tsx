@@ -82,6 +82,7 @@ function InvoiceContent() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [bookingSuccess, setBookingSuccess] = useState(false)
   const [bookingId, setBookingId] = useState("")
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false)
 
   // Parse URL parameters on component mount
   useEffect(() => {
@@ -232,6 +233,7 @@ function InvoiceContent() {
     }
 
     setIsSubmitting(true)
+    setShowSuccessPopup(false)
 
     // Build URL-encoded booking data to submit
     const formDataToSubmit = new URLSearchParams({
@@ -281,23 +283,17 @@ function InvoiceContent() {
         throw new Error("Server responded with an error")
       }
 
-      // Expected response example:
-      // {
-      //   "bookingId": "WTL1744207245653",
-      //   "message": "Booking created successfully",
-      //   "status": "success"
-      // }
       const data = await response.json()
       console.log("Booking response:", data)
 
       if (data.status === "success") {
         setBookingId(data.bookingId)
         setBookingSuccess(true)
-        alert(
-          `Booking successful! Your booking ID is: ${data.bookingId}\nPlease check your email for confirmation.`
-        )
-        // Redirect to homepage after a delay
+        setShowSuccessPopup(true)
+        
+        // Hide success popup after 3 seconds and redirect
         setTimeout(() => {
+          setShowSuccessPopup(false)
           router.push("/")
         }, 3000)
       } else {
@@ -512,8 +508,20 @@ function InvoiceContent() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-3 rounded-lg font-bold text-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform transition-all duration-300 hover:scale-[1.02] shadow-lg hover:shadow-xl">
-                  Book Now
+                  className={`w-full relative overflow-hidden ${
+                    isSubmitting
+                      ? "bg-blue-600"
+                      : "bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"
+                  } text-white py-3 rounded-lg font-bold text-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform transition-all duration-300 hover:scale-[1.02] shadow-lg hover:shadow-xl`}
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Processing...
+                    </div>
+                  ) : (
+                    "Book Now"
+                  )}
                 </button>
               </form>
             </div>
@@ -533,7 +541,67 @@ function InvoiceContent() {
             </a>
           </p>
         </div>
+
+        {showSuccessPopup && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 text-center animate-fade-in">
+              <div className="relative w-24 h-24 mx-auto mb-6">
+                <div className="absolute inset-0 bg-green-500 rounded-full animate-scale-in"></div>
+                <svg
+                  className="absolute inset-0 w-full h-full text-white animate-draw-check"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M20 6L9 17L4 12" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-2">Booking Successful!</h3>
+              <p className="text-gray-600 mb-4">Your booking ID: {bookingId}</p>
+              <p className="text-sm text-gray-500">Redirecting to homepage...</p>
+            </div>
+          </div>
+        )}
       </div>
+
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+          from { transform: scale(0); }
+          to { transform: scale(1); }
+        }
+        
+        @keyframes drawCheck {
+          0% { 
+            stroke-dasharray: 0, 30;
+            stroke-dashoffset: 30;
+          }
+          100% { 
+            stroke-dasharray: 30, 30;
+            stroke-dashoffset: 0;
+          }
+        }
+        
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out;
+        }
+        
+        .animate-scale-in {
+          animation: scaleIn 0.3s ease-out;
+        }
+        
+        .animate-draw-check {
+          animation: drawCheck 0.5s ease-out forwards;
+          animation-delay: 0.3s;
+        }
+      `}</style>
     </div>
   )
 }

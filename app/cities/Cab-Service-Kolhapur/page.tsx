@@ -13,6 +13,7 @@ import { useIntersectionCounter } from '@/hooks/useIntersectionCounter'
 import FlightBookingForm from "@/components/FlightBookingForm"
 import HomestaysBookingForm from "@/components/HomestaysBookingForm"
 import HolidayBookingForm from "@/components/HolidayBookingForm"
+import FloatingIcons from "@/components/FloatingIcons"
 
 // FAQ Item Component
 function FaqItem({ question, answer }: { question: string, answer: string }) {
@@ -558,6 +559,7 @@ export default function KolhapurCabServicePage() {
 
         <div className="relative z-10">
           <Footer />
+          <FloatingIcons />
         </div>
       </div>
     );

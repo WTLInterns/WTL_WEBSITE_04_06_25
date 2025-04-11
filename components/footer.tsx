@@ -378,7 +378,7 @@ export default function Footer() {
         {/* Social Media and Copyright */}
         <div className="mt-12 pt-8 border-t border-gray-700 flex flex-col md:flex-row justify-between items-center">
           <div className="flex space-x-6 mb-6 md:mb-0">
-            <Link href="#" className="text-gray-300 hover:text-blue-400 transition-colors">
+            <Link href="https://www.instagram.com/worldtriplink/" className="text-gray-300 hover:text-blue-400 transition-colors">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -396,7 +396,7 @@ export default function Footer() {
               </svg>
               <span className="sr-only">Instagram</span>
             </Link>
-            <Link href="#" className="text-gray-300 hover:text-blue-400 transition-colors">
+            <Link href="https://www.facebook.com/profile.php?id=61554946222967&mibextid=ZbWKwL" className="text-gray-300 hover:text-blue-400 transition-colors">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -412,7 +412,7 @@ export default function Footer() {
               </svg>
               <span className="sr-only">Facebook</span>
             </Link>
-            <Link href="#" className="text-gray-300 hover:text-blue-400 transition-colors">
+            <Link href="https://x.com/world_trip_link" className="text-gray-300 hover:text-blue-400 transition-colors">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -428,7 +428,7 @@ export default function Footer() {
               </svg>
               <span className="sr-only">Twitter</span>
             </Link>
-            <Link href="#" className="text-gray-300 hover:text-blue-400 transition-colors">
+            <Link href="https://in.linkedin.com/in/world-trip-link-9562762a6" className="text-gray-300 hover:text-blue-400 transition-colors">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="24"
@@ -448,7 +448,16 @@ export default function Footer() {
             </Link>
           </div>
           <div className="text-gray-300 text-sm text-center">
-            © Copyright WTL 2025. Made with <span className="text-red-500">❤</span> by cobaztech .{" "}
+            © Copyright WTL 2025. Made with <span className="text-red-500">❤</span> by{" "}
+            <Link 
+              href="https://cobaztech.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
+            >
+              cobaztech
+            </Link>
+            .{" "}
             <Link href="/privacy-policy" className="hover:text-blue-400 transition-colors">
               Privacy Policy
             </Link>

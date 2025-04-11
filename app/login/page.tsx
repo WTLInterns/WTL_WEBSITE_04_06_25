@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './login.module.css';
 import Cookies from 'js-cookie';
+import FloatingIcons from '@/components/FloatingIcons';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -208,6 +209,7 @@ export default function LoginPage() {
           </p>
         </form>
       </div>
+      <FloatingIcons />
     </div>
   );
 }

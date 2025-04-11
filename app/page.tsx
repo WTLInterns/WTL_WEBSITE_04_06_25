@@ -14,6 +14,8 @@ import CabCard from "@/components/cab-card"
 import AppPromotion from "@/components/app-promotion"
 import Footer from "@/components/footer"
 import Navbar2 from "../components/Navbar2"
+import FloatingIcons from "@/components/FloatingIcons"
+import Link from "next/link"
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
@@ -134,7 +136,7 @@ export default function Home() {
                 city="Mumbai"
                 tag="Mumbai"
                 description="The city that never sleeps, financial capital of India"
-                rating={4.5}
+                rating={5}
                 reviews={12385}
                 imageSrc="/images/mumbai.jpg"
               />
@@ -147,12 +149,12 @@ export default function Home() {
                 imageSrc="/images/kolhapur.jpg"
               />
               <DestinationCard
-                city="Satara"
-                tag="Satara"
-                description="Scenic hill stations and majestic mountain ranges"
-                rating={4}
+                city="Hyderabad"
+                tag="Hyderabad"
+                description="Historic landmarks and thriving tech hubs."
+                rating={5}
                 reviews={3456}
-                imageSrc="/images/satara.jpg"
+                imageSrc="/images/hyderabad.jpg"
               />
               <DestinationCard
                 city="Banglore"
@@ -199,6 +201,7 @@ export default function Home() {
 
           {/* Footer */}
           <Footer />
+          <FloatingIcons />
         </div>
       </div>
     </main>

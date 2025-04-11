@@ -11,6 +11,8 @@ import HotelBookingForm from "@/components/HotelBookingForm";
 import FlightBookingForm from "@/components/FlightBookingForm";
 import HomestaysBookingForm from "@/components/HomestaysBookingForm";
 import HolidayBookingForm from "@/components/HolidayBookingForm";
+import FloatingIcons from "@/components/FloatingIcons";
+import { useIntersectionCounter } from '@/hooks/useIntersectionCounter'
 
 // Counter hook for animated numbers
 const useCounter = (target: number, duration: number = 2000) => {
@@ -549,9 +551,11 @@ export default function WardhaCabServicePage() {
         </main>
 
         <Footer />
+        <FloatingIcons />
       </div>
     );
   } catch (error) {
+    console.error("Error rendering Wardha Cab Service page:", error);
     setHasError(true);
     return null;
   }

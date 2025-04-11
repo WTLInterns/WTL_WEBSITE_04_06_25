@@ -13,6 +13,7 @@ import { useIntersectionCounter } from '@/hooks/useIntersectionCounter'
 import FlightBookingForm from "@/components/FlightBookingForm"
 import HomestaysBookingForm from "@/components/HomestaysBookingForm"
 import HolidayBookingForm from "@/components/HolidayBookingForm"
+import FloatingIcons from "@/components/FloatingIcons"
 
 interface TravellerSelections {
   adults: number;
@@ -446,6 +447,7 @@ export default function MumbaiCabServicePage() {
         </main>
 
         <Footer />
+        <FloatingIcons />
       </div>
     );
   } catch (error) {
@@ -453,4 +455,4 @@ export default function MumbaiCabServicePage() {
     setHasError(true);
     return null;
   }
-} 
+}

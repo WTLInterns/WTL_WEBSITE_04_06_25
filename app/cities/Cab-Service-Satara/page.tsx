@@ -12,6 +12,7 @@ import FlightBookingForm from "@/components/FlightBookingForm"
 import HotelBookingForm from "@/components/HotelBookingForm"
 import HomestaysBookingForm from "@/components/HomestaysBookingForm"
 import HolidayBookingForm from "@/components/HolidayBookingForm"
+import FloatingIcons from "@/components/FloatingIcons"
 
 interface FaqItemProps {
   question: string
@@ -715,6 +716,7 @@ export default function SataraCabServicePage() {
         </section>
 
         <Footer />
+        <FloatingIcons />
       </div>
     )
   } catch (error) {

@@ -312,7 +312,7 @@ function SearchResultsContent() {
     },
     'Sedan': {
       title: 'Sedan',
-      subtitle: 'Luxury Sedan • Manual • Sleek Design',
+      subtitle: ' • Manual • Sleek Design',
       image: selectedSedanImage,
       priceKey: 'sedan',
       options: ['Maruti Swift Dzire', 'Honda Amaze', 'Hyundai Aura/Xcent', 'Toyota etios']
@@ -496,7 +496,7 @@ function SearchResultsContent() {
                       </div>
                       <div className="text-right">
                         <span className="text-green-600 text-sm">Limited Time Offer</span>
-                        <div className="text-2xl font-bold">₹{price}/day</div>
+                        <div className="text-2xl font-bold">₹{price}</div>
                       </div>
                     </div>
 

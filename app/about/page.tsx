@@ -6,6 +6,7 @@ import Footer from '@/components/footer'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useInView } from 'react-intersection-observer'
+import FloatingIcons from '@/components/FloatingIcons'
 
 const AboutPage = () => {
   const [ref1, inView1] = useInView({ triggerOnce: true, threshold: 0.1 })
@@ -185,6 +186,7 @@ const AboutPage = () => {
       </motion.section>
 
       <Footer />
+      <FloatingIcons />
     </div>
   )
 }

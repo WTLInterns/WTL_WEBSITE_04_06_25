@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from 'react-icons/fa';
 // import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 // import Navbar2 from '../../components/Navbar2';
+import FloatingIcons from '@/components/FloatingIcons';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -179,6 +180,7 @@ const Contact = () => {
           </div>
         </div>
       </div>
+      <FloatingIcons />
     </div>
   );
 };

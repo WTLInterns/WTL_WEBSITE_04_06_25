@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar2 from '../../components/Navbar2';
+import FloatingIcons from '@/components/FloatingIcons';
 // SVG Icons
 const UserIcon = () => (
   <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -630,6 +631,7 @@ export default function Register() {
           </form>
         </div>
       </div>
+      <FloatingIcons /> 
     </div>
   );
 } 
