@@ -89,7 +89,7 @@ function SearchResultsContent() {
     },
     {
       type: "SUV",
-      image: "/images/suv.jpg",
+      image: "/images/innova.jpg",
       rating: 4.8,
       reviews: 56,
       features: ["6+1 Seater", "USB Charging", "Climate Control", "Premium Sound System"],
@@ -97,10 +97,10 @@ function SearchResultsContent() {
     },
     {
       type: "MUV",
-      image: "/images/innova.jpg",
+      image: "/images/ertiga.jpg",
       rating: 4.7,
       reviews: 52,
-      features: ["7+1 Seater", "USB Charging", "Climate Control", "Entertainment System"],
+      features: ["6+1 Seater", "USB Charging", "Climate Control", "Entertainment System"],
       category: "MUV"
     }
   ])
@@ -112,7 +112,7 @@ function SearchResultsContent() {
   const [selectedSedan, setSelectedSedan] = useState("Maruti Swift Dzire")
   const [selectedSedanImage, setSelectedSedanImage] = useState("/images/swift.jpg")
   const [selectedSUV, setSelectedSUV] = useState("Maruti Ertiga")
-  const [selectedSUVImage, setSelectedSUVImage] = useState("/images/ertiga.jpg")
+  const [selectedSUVImage, setSelectedSUVImage] = useState("/images/innova.jpg")
   const [selectedSedanPremium, setSelectedSedanPremium] = useState("Honda City")
   const [selectedSedanPremiumImage, setSelectedSedanPremiumImage] = useState("/images/city.jpg")
   // const[trip,setTripInfo] = useState([])
@@ -272,7 +272,7 @@ function SearchResultsContent() {
   };
 
   const suvCars: Record<string, string> = {
-    "Maruti Ertiga": "/images/ertiga.jpg",
+    "Innova": "/images/innova.jpg",
     "Mahindra Marazzo": "/images/marazzo.jpg"
   };
 
@@ -329,12 +329,12 @@ function SearchResultsContent() {
       subtitle: 'Premium SUV • Automatic • Spacious',
       image: selectedSUVImage,
       priceKey: 'suv',
-      options: ['Maruti Ertiga', 'Mahindra Marazzo']
+      options: ['Innova', 'Mahindra Marazzo']
     },
     'MUV': {
       title: 'MUV',
       subtitle: 'Luxury MUV • Automatic • Premium',
-      image: '/images/innova.jpg',
+      image: '/images/ertiga.jpg',
       priceKey: 'suvplus'
     }
   };

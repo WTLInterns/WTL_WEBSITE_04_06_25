@@ -12,6 +12,17 @@ import FlightBookingForm from "@/components/FlightBookingForm";
 import HomestaysBookingForm from "@/components/HomestaysBookingForm";
 import HolidayBookingForm from "@/components/HolidayBookingForm";
 import FloatingIcons from "@/components/FloatingIcons";
+import Head from "next/head";
+
+<Head>
+<title>Corporate Cab Services in Indore | Employee Transport Solutions</title>
+    <meta name="description" content="WTL Tourism Pvt. Ltd. offers reliable corporate cab services in Indore. Ensure safe, comfortable, and on-time employee transportation with our professional cab solutions."/>
+    <link rel="canonical" href="https://www.worldtriplink.com/corporate/Corporate-Cab-Services-Indore"/>
+    <meta name="author" content="WTL Tourism"/>
+    <meta name="keywords" content="corporate cab services in Indore, employee transportation services in Indore"/>
+    <meta name="robots" content="index, follow"/>
+</Head>
+
 
 // Counter hook for animated numbers
 const useCounter = (target: number, duration: number = 2000) => {

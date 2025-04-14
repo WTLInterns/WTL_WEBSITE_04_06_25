@@ -358,7 +358,7 @@ function InvoiceContent() {
                     </div>
                     <div className="bg-white/10 p-3 rounded-lg backdrop-blur-sm">
                       <p className="text-blue-200 text-xs">Seats</p>
-                      <p className="font-semibold">4+1</p>
+                      <p className="font-semibold">{carData.category === "SUV" || carData.category === "MUV" ? "6+1" : "4+1"}</p>
                     </div>
                     <div className="bg-white/10 p-3 rounded-lg backdrop-blur-sm">
                       <p className="text-blue-200 text-xs">Fuel Type</p>

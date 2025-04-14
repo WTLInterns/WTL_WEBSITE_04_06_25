@@ -12,6 +12,17 @@ import FlightBookingForm from "@/components/FlightBookingForm";
 import HomestaysBookingForm from "@/components/HomestaysBookingForm";
 import HolidayBookingForm from "@/components/HolidayBookingForm";
 import FloatingIcons from "@/components/FloatingIcons";
+import Head from "next/head";
+
+
+<Head>
+<title>Corporate Cab & Employee Transportation Services in Pune</title>
+    <meta name="description" content="WTL Tourism Pvt. Ltd. offers reliable corporate cab services in Pune. Get safe, on-time employee transportation services tailored for your business needs."/>
+    <link rel="canonical" href="https://worldtriplink.com/corporate/Corporate-Cab-Service-Pune"/>
+    <meta name="author" content="WTL Tourism Pvt. Ltd."/>
+    <meta name="keywords" content="corporate cab services in pune, corporate cab service in pune, corporate employee cab services in pune, corporate employee cab system in pune, uber cabs corporate office in pune, employee transportation services in pune, daily cab service in pune, corporate transport service"/>
+    <meta name="robots" content="index, follow"/>
+</Head>
 
 // Counter hook for animated numbers
 const useCounter = (target: number, duration: number = 2000) => {

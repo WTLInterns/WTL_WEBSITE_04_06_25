@@ -12,6 +12,16 @@ import FlightBookingForm from "@/components/FlightBookingForm";
 import HomestaysBookingForm from "@/components/HomestaysBookingForm";
 import HolidayBookingForm from "@/components/HolidayBookingForm";
 import FloatingIcons from "@/components/FloatingIcons";
+import Head from "next/head";
+
+<Head>
+<title>Monthly Cab Service in Bangalore | Corporate Cab Services</title>
+    <meta name="description" content="WTL Tourism Pvt. Ltd. offers reliable monthly cab service in Bangalore. Get hassle-free corporate cab services for employees with safety and affordability."/>
+    <link rel="canonical" href="https://www.worldtriplink.com/corporate/Monthly-Cab-Service-Bangalore"/>
+    <meta name="author" content="WTL Tourism"/>
+    <meta name="keywords" content="corporate cab services in bangalore, commercial cabs service in bangalore corporate, corporate employee cab services in bangalore, safe corporate cabs in bangalore, what is the average cab price for corporate in bangalore, monthly cab service in bangalore, employee transportation services in bangalore, daily cab services in bangalore, corporate transport service"/>
+    <meta name="robots" content="index, follow"/>
+</Head>
 
 // Counter hook for animated numbers
 const useCounter = (target: number, duration: number = 2000) => {

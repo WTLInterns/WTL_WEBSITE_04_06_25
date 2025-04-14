@@ -12,6 +12,18 @@ import FlightBookingForm from "@/components/FlightBookingForm";
 import HomestaysBookingForm from "@/components/HomestaysBookingForm";
 import HolidayBookingForm from "@/components/HolidayBookingForm";
 import FloatingIcons from "@/components/FloatingIcons";
+import Head from "next/head";
+
+
+<Head>
+    <title>Corporate Cab Service in Mumbai | Employee Transportation</title>
+    <meta name="description" content="WTL Tourism Pvt. Ltd. offers reliable corporate cab service in Mumbai. Ensure safe, on-time employee transportation services with our hassle-free cab solutions."/>
+    <link rel="canonical" href="https://www.worldtriplink.com/corporate/Corporate-Cab-Service-Mumbai"/>
+    <meta name="author" content="WTL Tourism"/>
+    <meta name="keywords" content="employee transportation services in mumbai, corporate employee transport services in mumbai, employee transport service in mumbai, cab transport services in mumbai for corporate, corporate cab service in mumbai, corporate cab services in mumbai, corporate employee cab services in mumbai, corporate employee cab system in mumbai, whats per km price for corporate night cabs in mumbai"/>
+    <meta name="robots" content="index, follow"/>
+</Head>
+
 
 // Counter hook for animated numbers
 const useCounter = (target: number, duration: number = 2000) => {

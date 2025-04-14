@@ -12,6 +12,17 @@ import FlightBookingForm from "@/components/FlightBookingForm";
 import HomestaysBookingForm from "@/components/HomestaysBookingForm";
 import HolidayBookingForm from "@/components/HolidayBookingForm";
 import FloatingIcons from "@/components/FloatingIcons";
+import Head from "next/head";
+
+<Head>
+<title>Corporate Cab Services in Chennai | Reliable Employee Transport</title>
+    <meta name="description" content="WTL Tourism Pvt. Ltd. offers professional corporate cab services in Chennai. Get safe, on-time employee transportation solutions tailored to your business needs."/>
+    <link rel="canonical" href="https://www.worldtriplink.com/corporate/Corporate-Cab-Services-Chennai"/>
+    <meta name="author" content="WTL Tourism"/>
+    <meta name="keywords" content="employee transportation services in chennai, corporate employee transport services in chennai, employee transport service in chennai, cab transport services in chennai for corporate, corporate cab service in chennai, corporate cab services in chennai, corporate employee cab services in chennai, corporate employee cab system in chennai, whats per km price for corporate night cabs in chennai"/>
+    <meta name="robots" content="index, follow"/>
+</Head>
+
 
 // Counter hook for animated numbers
 const useCounter = (target: number, duration: number = 2000) => {
