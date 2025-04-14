@@ -246,7 +246,11 @@ function SearchResultsContent() {
       let totalPrice = 0;
       
       if (tripType === 'roundTrip' || tripType === 'round-trip') {
-        totalPrice = currentDistance * basePrice * currentDays;
+        // totalPrice = currentDistance * basePrice * currentDays;
+          // totalPrice = (currentDistance * 2 * basePrice) + (currentDays * 300); 
+          const package1 = 300 * currentDays;
+          const price = package1 * basePrice;
+            totalPrice = package1 + price;
       } else {
         totalPrice = currentDistance * basePrice;
       }

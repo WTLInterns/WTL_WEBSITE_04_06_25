@@ -3,6 +3,8 @@
 import { useState, useEffect, Suspense } from "react"
 import Image from "next/image"
 import { useRouter, useSearchParams } from "next/navigation"
+import Cookies from 'js-cookie';
+
 
 // Define interfaces for TypeScript type safety
 interface CarData {
@@ -75,9 +77,11 @@ function InvoiceContent() {
     driverrate: 0,
     gst: 0,
     service: 0,
-    total: 0,
+    total: carData.price + Math.round(carData.price * 0.1) + Math.round(carData.price * 0.05),
     isCalculated: false
   })
+
+  
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [bookingSuccess, setBookingSuccess] = useState(false)
@@ -117,6 +121,9 @@ function InvoiceContent() {
     })
   }, [searchParams])
 
+  const userId = Cookies.get('userId')
+
+
   // Call the pricing API (invoice1) and update the pricing state
   const calculatePricing = async () => {
     // Ensure required form fields are provided before pricing calculation
@@ -142,11 +149,13 @@ function InvoiceContent() {
       time: carData.time,
       tripType: carData.tripType,
       distance: carData.distance,
-      days: carData.days
+      days: carData.days,
+      // userId: userId?.toString() || ""
+
     })
 
     try {
-      const response = await fetch("https://api.worldtriplink.com/api/invoice1", {
+      const response = await fetch("https//:api.worldtriplink.com/api/invoice1", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -243,7 +252,7 @@ function InvoiceContent() {
       seats: "4+1",
       fuelType: "CNG-Diesel",
       availability: "Available",
-      price: carData.price.toString(),
+      price: (carData.price + Math.round(carData.price * 0.1) + Math.round(carData.price * 0.05)).toString(),
       pickupLocation: carData.pickupLocation,
       dropLocation: carData.dropLocation,
       date: carData.date,
@@ -259,17 +268,16 @@ function InvoiceContent() {
       phone: formData.phone,
       service: Math.round(carData.price * 0.1).toString(),
       gst: Math.round(carData.price * 0.05).toString(),
-      total: (
-        carData.price +
-        Math.round(carData.price * 0.1) +
-        Math.round(carData.price * 0.05)
-      ).toString(),
+      total: carData.price.toString(),
       days: carData.days,
-      driverrate: "0"
+      driverrate: "0",
+      userId: userId?.toString() || ""
+
+      
     })
 
     try {
-      const response = await fetch("https://api.worldtriplink.com/api/websiteBooking", {
+      const response = await fetch("https//:api.worldtriplink.com/api/bookingConfirm", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"

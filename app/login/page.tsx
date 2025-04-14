@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // On component mount, capture any URL query parameters.
   useEffect(() => {
     setSearchParams(new URLSearchParams(window.location.search));
   }, []);
@@ -27,7 +28,10 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/auth/userlogin', {
+      // Use your production API endpoint here.
+      // The API is expected to receive a JSON body with "mobile" and "password"
+      // even though a test URL example with query parameters is shown.
+      const response = await fetch('https://api.worldtriplink.com/auth/login1', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -41,23 +45,34 @@ export default function LoginPage() {
       const data = await response.json();
       console.log('Login response:', data);
 
-      // Corrected status code check
-      if (response.ok && data.message === 'Login Successful') {
+      // Expected API response:
+      // {
+      //   "status": "success",
+      //   "role": "USER",
+      //   "data": null,
+      //   "userId": 709,
+      //   "username": null,
+      //   "message": null
+      // }
+      if (response.status === 200 && data.status === 'success') {
+        // Convert role to uppercase; default to 'USER'
         const role = data.role?.toUpperCase() || 'USER';
 
-        // Set cookies
-        Cookies.set('userId', data.id, { secure: true, sameSite: 'strict' });
+        // Store essential user info in cookies
+        Cookies.set('userId', String(data.userId), { secure: true, sameSite: 'strict' });
         Cookies.set('mobileNo', mobileNo, { secure: true, sameSite: 'strict' });
         Cookies.set('userRole', role, { secure: true, sameSite: 'strict' });
 
+        // Optionally, combine user info into one cookie object
         const userData = {
-          userId: data.id,
+          userId: data.userId,
           mobileNo,
           role,
-          isLoggedIn: true
+          isLoggedIn: true,
         };
         Cookies.set('user', JSON.stringify(userData), { secure: true, sameSite: 'strict' });
 
+        // Show success message and redirect after a delay.
         setSuccessMessage('Login successful! Redirecting...');
         setShowSuccessMessage(true);
 
@@ -73,16 +88,18 @@ export default function LoginPage() {
             } else if (role === 'DRIVER') {
               router.push('/driver/dashboard');
             } else {
+              // For USER role or any other cases
               router.push('/');
             }
           }
         }, 2000);
       } else {
+        // If the API returns an error message, clear the password field and show the error.
         setPassword('');
         setError(data.message || 'Login failed. Please try again.');
       }
-    } catch (error) {
-      console.error('Login error:', error);
+    } catch (err) {
+      console.error('Login error:', err);
       setPassword('');
       setError('An error occurred during login. Please try again.');
     } finally {
@@ -90,7 +107,6 @@ export default function LoginPage() {
     }
   };
 
-  // Rest of the code remains the same
   const handleInputChange = (setter: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setter(e.target.value);
     if (error) {
@@ -98,15 +114,15 @@ export default function LoginPage() {
     }
   };
 
+  // Check for errors or registration messages stored in cookies or query parameters.
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('error')) {
       setError('Invalid mobile number or password.');
     }
-
+    
     const registrationSuccess = Cookies.get('registrationSuccess');
     const registrationMessage = Cookies.get('registrationMessage');
-
     if (registrationSuccess === 'true') {
       setShowSuccessMessage(true);
       setSuccessMessage(registrationMessage || 'Registration successful! Please log in.');
@@ -115,6 +131,7 @@ export default function LoginPage() {
     }
   }, []);
 
+  // Prevent the context menu and certain keyboard shortcuts.
   useEffect(() => {
     const handleContextMenu = (e: MouseEvent) => e.preventDefault();
     const handleKeyDown = (e: KeyboardEvent) => {
