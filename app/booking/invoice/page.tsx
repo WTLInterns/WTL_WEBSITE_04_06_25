@@ -155,7 +155,7 @@ function InvoiceContent() {
     })
 
     try {
-      const response = await fetch("https//:api.worldtriplink.com/api/invoice1", {
+      const response = await fetch("https://api.worldtriplink.com/api/invoice1", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -245,7 +245,8 @@ function InvoiceContent() {
     setShowSuccessPopup(false)
 
     // Build URL-encoded booking data to submit
-    const formDataToSubmit = new URLSearchParams({
+    const 
+    formDataToSubmit = new URLSearchParams({
       cabId: carData.name,
       modelName: carData.name,
       modelType: carData.category,
@@ -277,7 +278,7 @@ function InvoiceContent() {
     })
 
     try {
-      const response = await fetch("https//:api.worldtriplink.com/api/bookingConfirm", {
+      const response = await fetch("https://api.worldtriplink.com/api/bookingConfirm", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
