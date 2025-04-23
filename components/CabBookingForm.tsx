@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, FormEvent } from "react"
+import { useState, useEffect, useRef, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Script from "next/script"
 
@@ -12,27 +12,27 @@ interface TimeSlot {
 
 declare global {
   interface Window {
-    initGoogleAutocomplete: () => void;
+    initGoogleAutocomplete: () => void
     google: {
       maps: {
         places: {
           Autocomplete: new (
             inputField: HTMLInputElement,
             opts?: {
-              componentRestrictions?: { country: string };
-              types?: string[];
-            }
+              componentRestrictions?: { country: string }
+              types?: string[]
+            },
           ) => {
-            addListener: (eventName: string, callback: () => void) => void;
+            addListener: (eventName: string, callback: () => void) => void
             getPlace: () => {
-              formatted_address?: string;
-              name?: string;
-              address_components?: any[];
-            };
-          };
-        };
-      };
-    };
+              formatted_address?: string
+              name?: string
+              address_components?: any[]
+            }
+          }
+        }
+      }
+    }
   }
 }
 
@@ -52,6 +52,10 @@ export default function CabBookingForm() {
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([])
   const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false)
 
+  const [showPopup, setShowPopup] = useState(false)
+  const [userName, setUserName] = useState("")
+  const [mobileNumber, setMobileNumber] = useState("")
+
   const pickupRef = useRef<HTMLInputElement>(null)
   const dropRef = useRef<HTMLInputElement>(null)
   const pickupAutocompleteRef = useRef<any>(null)
@@ -63,9 +67,9 @@ export default function CabBookingForm() {
   // Check if place is in India
   const isPlaceInIndia = (place: any) => {
     if (!place.address_components) return false
-    
+
     for (const component of place.address_components) {
-      if (component.types.includes('country') && component.short_name === 'IN') {
+      if (component.types.includes("country") && component.short_name === "IN") {
         return true
       }
     }
@@ -76,14 +80,11 @@ export default function CabBookingForm() {
   const initializeAutocomplete = () => {
     if (typeof window !== "undefined" && window.google && window.google.maps && window.google.maps.places) {
       if (pickupRef.current) {
-        pickupAutocompleteRef.current = new window.google.maps.places.Autocomplete(
-          pickupRef.current,
-          {
-            componentRestrictions: { country: "in" },
-            types: ["geocode", "establishment"],
-            fields: ["formatted_address", "name", "address_components"]
-          }
-        )
+        pickupAutocompleteRef.current = new window.google.maps.places.Autocomplete(pickupRef.current, {
+          componentRestrictions: { country: "in" },
+          types: ["geocode", "establishment"],
+          fields: ["formatted_address", "name", "address_components"],
+        })
         pickupAutocompleteRef.current.addListener("place_changed", () => {
           const place = pickupAutocompleteRef.current.getPlace()
           if (isPlaceInIndia(place)) {
@@ -97,14 +98,11 @@ export default function CabBookingForm() {
       }
 
       if (dropRef.current) {
-        dropAutocompleteRef.current = new window.google.maps.places.Autocomplete(
-          dropRef.current,
-          {
-            componentRestrictions: { country: "in" },
-            types: ["geocode", "establishment"],
-            fields: ["formatted_address", "name", "address_components"]
-          }
-        )
+        dropAutocompleteRef.current = new window.google.maps.places.Autocomplete(dropRef.current, {
+          componentRestrictions: { country: "in" },
+          types: ["geocode", "establishment"],
+          fields: ["formatted_address", "name", "address_components"],
+        })
         dropAutocompleteRef.current.addListener("place_changed", () => {
           const place = dropAutocompleteRef.current.getPlace()
           if (isPlaceInIndia(place)) {
@@ -136,7 +134,7 @@ export default function CabBookingForm() {
 
   // Add custom styles for Google autocomplete dropdown
   useEffect(() => {
-    const customStyles = document.createElement('style')
+    const customStyles = document.createElement("style")
     customStyles.textContent = `
       .pac-container {
         border-radius: 8px;
@@ -269,7 +267,7 @@ export default function CabBookingForm() {
     if (!time) return ""
     const [hours, minutes] = time.split(":")
     const date = new Date()
-    date.setHours(parseInt(hours), parseInt(minutes))
+    date.setHours(Number.parseInt(hours), Number.parseInt(minutes))
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
@@ -280,26 +278,26 @@ export default function CabBookingForm() {
   const calculateDistance = async (origin: string, destination: string) => {
     try {
       console.log("Calculating distance between:", origin, "and", destination)
-      
-      const response = await fetch('https://api.worldtriplink.com/api/cab1', {
-        method: 'POST',
+
+      const response = await fetch("https://api.worldtriplink.com/api/cab1", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          "Content-Type": "application/x-www-form-urlencoded",
         },
         body: new URLSearchParams({
           tripType: tripType === "oneWay" ? "oneWay" : tripType === "roundTrip" ? "roundTrip" : "rentalTrip",
           pickupLocation: origin,
           dropLocation: destination,
-          date: pickupDate || '',
-          Returndate: Returndate || '',
-          time: pickupTime || '',
-          distance: '0'
-        })
+          date: pickupDate || "",
+          Returndate: Returndate || "",
+          time: pickupTime || "",
+          distance: "0",
+        }),
       })
 
       const data = await response.json()
       console.log("Distance API response:", data)
-      
+
       if (data && data.distance && data.distance > 0) {
         const distance = data.distance
         console.log("✅ Using API calculated distance:", distance)
@@ -346,22 +344,43 @@ export default function CabBookingForm() {
 
     try {
       const distance = await calculateDistance(pickupLocation, dropLocation)
-      
-      const searchParams = new URLSearchParams({
-        pickup: pickupLocation,
-        drop: dropLocation,
-        date: pickupDate,
-        time: pickupTime,
-        tripType: tripType,
-        Returndate: Returndate || '',
-        distance: distance ? distance.toString() : '0'
-      })
-      
-      router.push(`/search?${searchParams.toString()}`)
+      // Show popup instead of navigating immediately
+      setShowPopup(true)
     } catch (error) {
       console.error("Error submitting booking:", error)
       setError("Failed to submit booking. Please try again.")
     }
+  }
+
+  const handleFinalSubmit = () => {
+    if (!userName.trim()) {
+      setError("Please enter your name")
+      return
+    }
+
+    if (!mobileNumber.trim()) {
+      setError("Please enter your mobile number")
+      return
+    }
+
+    if (!/^\d{10}$/.test(mobileNumber)) {
+      setError("Please enter a valid 10-digit mobile number")
+      return
+    }
+
+    const searchParams = new URLSearchParams({
+      pickup: pickupLocation,
+      drop: dropLocation,
+      date: pickupDate,
+      time: pickupTime,
+      tripType: tripType,
+      Returndate: Returndate || "",
+      distance: calculatedDistance ? calculatedDistance.toString() : "0",
+      name: userName,
+      mobile: mobileNumber,
+    })
+
+    router.push(`/search?${searchParams.toString()}`)
   }
 
   return (
@@ -372,7 +391,7 @@ export default function CabBookingForm() {
         onLoad={() => setScriptLoaded(true)}
         onError={() => console.error("Failed to load Google Maps script")}
       />
-      
+
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-6xl mx-auto bg-black/30 backdrop-blur-sm rounded-lg shadow-lg p-6"
@@ -422,9 +441,7 @@ export default function CabBookingForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Pickup Location */}
             <div>
-              <label className="block text-sm font-medium text-white mb-1">
-                Pickup Location
-              </label>
+              <label className="block text-sm font-medium text-white mb-1">Pickup Location</label>
               <div className="relative">
                 <input
                   ref={pickupRef}
@@ -436,12 +453,7 @@ export default function CabBookingForm() {
                   required
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="h-5 w-5 text-white/70"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="h-5 w-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -461,9 +473,7 @@ export default function CabBookingForm() {
 
             {/* Drop Location */}
             <div>
-              <label className="block text-sm font-medium text-white mb-1">
-                Drop Location
-              </label>
+              <label className="block text-sm font-medium text-white mb-1">Drop Location</label>
               <div className="relative">
                 <input
                   ref={dropRef}
@@ -475,12 +485,7 @@ export default function CabBookingForm() {
                   required
                 />
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="h-5 w-5 text-white/70"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="h-5 w-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -500,9 +505,7 @@ export default function CabBookingForm() {
 
             {/* Pickup Date */}
             <div>
-              <label className="block text-sm font-medium text-white mb-1">
-                Pickup Date
-              </label>
+              <label className="block text-sm font-medium text-white mb-1">Pickup Date</label>
               <div className="relative">
                 <input
                   id="pickupDate"
@@ -518,12 +521,7 @@ export default function CabBookingForm() {
                   onClick={() => openDatePicker("pickupDate")}
                   className="absolute inset-y-0 left-0 pl-3 flex items-center text-white/70 hover:text-white"
                 >
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -538,9 +536,7 @@ export default function CabBookingForm() {
             {/* Return Date */}
             {tripType === "roundTrip" && (
               <div>
-                <label className="block text-sm font-medium text-white mb-1">
-                  Return Date
-                </label>
+                <label className="block text-sm font-medium text-white mb-1">Return Date</label>
                 <div className="relative">
                   <input
                     id="Returndate"
@@ -556,12 +552,7 @@ export default function CabBookingForm() {
                     onClick={() => openDatePicker("Returndate")}
                     className="absolute inset-y-0 left-0 pl-3 flex items-center text-white/70 hover:text-white"
                   >
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -576,9 +567,7 @@ export default function CabBookingForm() {
 
             {/* Pickup Time */}
             <div>
-              <label className="block text-sm font-medium text-white mb-1">
-                Pickup Time
-              </label>
+              <label className="block text-sm font-medium text-white mb-1">Pickup Time</label>
               <div className="relative">
                 <input
                   id="pickupTime"
@@ -594,12 +583,7 @@ export default function CabBookingForm() {
                     onClick={() => openTimePicker("pickupTime")}
                     className="absolute inset-y-0 left-0 pl-3 flex items-center text-white/70 hover:text-white"
                   >
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -608,9 +592,7 @@ export default function CabBookingForm() {
                       />
                     </svg>
                   </button>
-                  <span className="pl-10 text-white">
-                    {pickupTime ? formatTime(pickupTime) : "Select Time"}
-                  </span>
+                  <span className="pl-10 text-white">{pickupTime ? formatTime(pickupTime) : "Select Time"}</span>
                 </div>
                 {isLoadingTimeSlots && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -621,9 +603,7 @@ export default function CabBookingForm() {
             </div>
           </div>
 
-          {error && (
-            <div className="text-red-500 text-sm text-center">{error}</div>
-          )}
+          {error && <div className="text-red-500 text-sm text-center">{error}</div>}
 
           <div className="flex justify-center mt-6">
             <button
@@ -635,6 +615,60 @@ export default function CabBookingForm() {
           </div>
         </div>
       </form>
+      {showPopup && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-slate-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-xl font-bold text-white mb-4">Enter Your Details</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-white mb-1">Your Name</label>
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Enter your full name"
+                  className="w-full p-3 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/20 text-white placeholder-white/70"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-white mb-1">Mobile Number</label>
+                <input
+                  type="tel"
+                  value={mobileNumber}
+                  onChange={(e) => setMobileNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                  placeholder="Enter 10-digit mobile number"
+                  className="w-full p-3 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/20 text-white placeholder-white/70"
+                  required
+                  maxLength={10}
+                  pattern="[0-9]{10}"
+                />
+              </div>
+
+              {error && <div className="text-red-500 text-sm">{error}</div>}
+
+              <div className="flex space-x-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPopup(false)}
+                  className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleFinalSubmit}
+                  className="flex-1 bg-emerald-500 text-white px-4 py-2 rounded-lg hover:bg-emerald-600 transition-colors"
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

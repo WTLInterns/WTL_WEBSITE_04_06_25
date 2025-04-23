@@ -88,6 +88,14 @@ function SearchResultsContent() {
       category: "Sedan Premium"
     },
     {
+      type: "MUV",
+      image: "/images/ertiga.jpg",
+      rating: 4.7,
+      reviews: 52,
+      features: ["6+1 Seater", "USB Charging", "Climate Control", "Entertainment System"],
+      category: "MUV"
+    },
+    {
       type: "SUV",
       image: "/images/innova.jpg",
       rating: 4.8,
@@ -95,14 +103,7 @@ function SearchResultsContent() {
       features: ["6+1 Seater", "USB Charging", "Climate Control", "Premium Sound System"],
       category: "SUV"
     },
-    {
-      type: "MUV",
-      image: "/images/ertiga.jpg",
-      rating: 4.7,
-      reviews: 52,
-      features: ["6+1 Seater", "USB Charging", "Climate Control", "Entertainment System"],
-      category: "MUV"
-    }
+
   ])
   const [days, setDays] = useState<number>(0)
   const [isClient, setIsClient] = useState(false)
@@ -112,7 +113,7 @@ function SearchResultsContent() {
   const [selectedSedan, setSelectedSedan] = useState("Maruti Swift Dzire")
   const [selectedSedanImage, setSelectedSedanImage] = useState("/images/swift.jpg")
   const [selectedSUV, setSelectedSUV] = useState("Maruti Ertiga")
-  const [selectedSUVImage, setSelectedSUVImage] = useState("/images/innova.jpg")
+  const [selectedSUVImage, setSelectedSUVImage] = useState("/images/innova crystaa.jpg")
   const [selectedSedanPremium, setSelectedSedanPremium] = useState("Honda City")
   const [selectedSedanPremiumImage, setSelectedSedanPremiumImage] = useState("/images/city.jpg")
   // const[trip,setTripInfo] = useState([])
@@ -276,8 +277,8 @@ function SearchResultsContent() {
   };
 
   const suvCars: Record<string, string> = {
-    "Innova": "/images/innova.jpg",
-    "Mahindra Marazzo": "/images/marazzo.jpg"
+    "Innova": "/images/innova crystaa.jpg",
+    
   };
 
   const sedanPremiumCars: Record<string, string> = {
@@ -328,19 +329,20 @@ function SearchResultsContent() {
       priceKey: 'sedanpremium',
       options: ['Honda City', 'Hyundai Verna', 'Maruti Ciaz']
     },
+    'MUV': {
+      title: 'MUV',
+      subtitle: 'Economic MUV • Automatic • Premium',
+      image: '/images/ertiga.jpg',
+      priceKey: 'suvplus',
+    },
     'SUV': {
       title: 'SUV',
       subtitle: 'Premium SUV • Automatic • Spacious',
       image: selectedSUVImage,
       priceKey: 'suv',
-      options: ['Innova', 'Mahindra Marazzo']
+     
     },
-    'MUV': {
-      title: 'MUV',
-      subtitle: 'Luxury MUV • Automatic • Premium',
-      image: '/images/ertiga.jpg',
-      priceKey: 'suvplus'
-    }
+   
   };
 
   const displayedCars = selectedCategory === "All Cars" 
