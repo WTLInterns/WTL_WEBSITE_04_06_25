@@ -72,7 +72,7 @@ export default function AppPromotion() {
             <div className="relative w-64 h-[500px]">
               <div className="absolute inset-0 rounded-[40px] border-8 border-black overflow-hidden">
                 <Image
-                  src="/images/WTL_Logo.jpeg"
+                  src="/images/app_logo.jpeg"
                   alt="Mobile app screenshot"
                   fill
                   className="object-cover"
