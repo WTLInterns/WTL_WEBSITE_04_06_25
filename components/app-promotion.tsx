@@ -52,9 +52,11 @@ export default function AppPromotion() {
                 />
                 <span className="font-medium">App Store</span>
               </Link>
-              <Link
-                href="#"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.yourcompany.worldtriplink&hl=en"
                 className="bg-white rounded-lg px-6 py-3 flex items-center gap-2 text-gray-900 hover:bg-gray-100 transition-colors"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <Image
                   src="/images/play_store.jpg"
@@ -64,23 +66,31 @@ export default function AppPromotion() {
                   className="object-contain"
                 />
                 <span className="font-medium">Google Play</span>
-              </Link>
+              </a>
             </div>
           </div>
 
           <div className="flex justify-center">
-            <div className="relative w-64 h-[500px]">
-              <div className="absolute inset-0 rounded-[40px] border-8 border-black overflow-hidden">
-                <Image
-                  src="/images/app_logo.jpeg"
-                  alt="Mobile app screenshot"
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/50 rounded-full"></div>
-              </div>
-            </div>
-          </div>
+  <a
+    href="https://play.google.com/store/apps/details?id=com.yourcompany.worldtriplink&hl=en"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Open WTL Tourism Car Rental app on Google Play Store"
+    style={{ display: 'block' }}
+  >
+    <div className="relative w-64 h-[500px] cursor-pointer hover:scale-105 transition-transform">
+      <div className="absolute inset-0 rounded-[40px] border-8 border-black overflow-hidden">
+        <Image
+          src="/images/app_logo.jpeg"
+          alt="Mobile app screenshot"
+          fill
+          className="object-cover"
+        />
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/50 rounded-full"></div>
+      </div>
+    </div>
+  </a>
+</div>
         </div>
       </div>
     </section>
