@@ -450,14 +450,14 @@ export default function Footer() {
           <div className="text-gray-300 text-sm text-center">
             © Copyright WTL 2025. Made with <span className="text-red-500">❤</span> by{" "}
             <Link 
-              href="https://cobaztech.com" 
+              href="https:/webutsav.com" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-blue-400 hover:text-blue-300 transition-colors font-medium"
             >
-              cobaztech
+              Webutsav
             </Link>
-            .{" "}
+            {" "}
             <Link href="/privacy-policy" className="hover:text-blue-400 transition-colors">
               Privacy Policy
             </Link>

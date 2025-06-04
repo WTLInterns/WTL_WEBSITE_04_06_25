@@ -119,7 +119,25 @@ function InvoiceContent() {
       distance,
       days
     })
-  }, [searchParams])
+
+    // Prefill form fields if user is logged in
+    if (typeof window !== 'undefined') {
+  const userStr = Cookies.get('user');
+  if (userStr) {
+    try {
+      const userObj = JSON.parse(userStr);
+      console.log('Loaded user from cookie:', userObj); // Debug
+      setFormData(prev => ({
+        name: userObj.username || userObj.name || prev.name || "",
+        email: userObj.email || prev.email || "",
+        phone: userObj.phone || userObj.mobileNo || prev.phone || ""
+      }));
+    } catch (err) {
+      console.log('Failed to parse user from cookie', err);
+    }
+  }
+}
+    }, [searchParams])
 
   const userId = Cookies.get('userId')
 
@@ -155,7 +173,7 @@ function InvoiceContent() {
     })
 
     try {
-      const response = await fetch("https://api.worldtriplink.com/api/invoice1", {
+      const response = await fetch("http://localhost:8080/api/invoice1", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"
@@ -278,7 +296,7 @@ function InvoiceContent() {
     })
 
     try {
-      const response = await fetch("https://api.worldtriplink.com/api/bookingConfirm", {
+      const response = await fetch("http://localhost:8080/api/bookingConfirm", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded"

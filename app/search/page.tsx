@@ -2,6 +2,8 @@
 import React from 'react'
 import { useState, useEffect, Suspense } from "react"
 import Footer from "@/components/footer"
+import './custom-radio.css';
+
 import { useSearchParams } from 'next/navigation'
 import Navbar2 from "../../components/Navbar2"
 import axios from 'axios'
@@ -47,6 +49,7 @@ interface CarType {
   image: string;
   priceKey: string;
   options?: string[];
+  renderOptions?: React.ReactNode;
 }
 
 export default function SearchResults() {
@@ -88,22 +91,29 @@ function SearchResultsContent() {
       category: "Sedan Premium"
     },
     {
-      type: "MUV",
+      type: "Ertiga",
       image: "/images/ertiga.jpg",
-      rating: 4.7,
-      reviews: 52,
-      features: ["6+1 Seater", "USB Charging", "Climate Control", "Entertainment System"],
-      category: "MUV"
+      rating: 4.8, // Assuming similar rating to SUV
+      reviews: 56, // Assuming similar reviews
+      features: ["6+1 Seater", "USB Charging", "Climate Control", "Premium Sound System"],
+      category: "Ertiga" // Dedicated category for filtering if needed
     },
     {
       type: "SUV",
-      image: "/images/innova.jpg",
+      image: "/images/ertiga.jpg", // Base image, will be overridden by selectedSUVImage in rendering
       rating: 4.8,
       reviews: 56,
       features: ["6+1 Seater", "USB Charging", "Climate Control", "Premium Sound System"],
       category: "SUV"
     },
-
+    {
+      type: "MUV",
+      image: "/images/innova crystaa.jpg",
+      rating: 4.7,
+      reviews: 52,
+      features: ["6+1 Seater", "USB Charging", "Climate Control", "Entertainment System"],
+      category: "MUV"
+    }
   ])
   const [days, setDays] = useState<number>(0)
   const [isClient, setIsClient] = useState(false)
@@ -112,10 +122,15 @@ function SearchResultsContent() {
   const [selectedCarImage, setSelectedCarImage] = useState("/images/wagonr.jpg")
   const [selectedSedan, setSelectedSedan] = useState("Maruti Swift Dzire")
   const [selectedSedanImage, setSelectedSedanImage] = useState("/images/swift.jpg")
-  const [selectedSUV, setSelectedSUV] = useState("Maruti Ertiga")
-  const [selectedSUVImage, setSelectedSUVImage] = useState("/images/innova crystaa.jpg")
+  const [selectedSUV, setSelectedSUV] = useState("Innova")
+  const [selectedSUVImage, setSelectedSUVImage] = useState("/images/innova.jpg")
   const [selectedSedanPremium, setSelectedSedanPremium] = useState("Honda City")
   const [selectedSedanPremiumImage, setSelectedSedanPremiumImage] = useState("/images/city.jpg")
+
+  const suvImageMap: { [key: string]: string } = {
+    "Innova": "/images/innova.jpg",
+    "Kia Carens": "/images/kia 3.jpeg" // Updated path to actual Kia Carens image
+  };
   // const[trip,setTripInfo] = useState([])
   
   const debugLog = (...args: any[]) => {
@@ -144,7 +159,7 @@ function SearchResultsContent() {
   
       // 3. Make the request with identical Postman configuration
       const response = await axios.post(
-        'https://api.worldtriplink.com/api/cab1',
+        'http://localhost:8080/api/cab1',
         params.toString(),
         {
           // headers: {
@@ -208,7 +223,7 @@ function SearchResultsContent() {
         }
         
         if (data.cabinfo && data.cabinfo.length > 0) {
-          setCabInfo(data.cabinfo);
+          // setCabInfo(data.cabinfo); // Prevent API from overwriting frontend cabInfo
         }
       } catch (error) {
         console.error("Error fetching cab data:", error);
@@ -219,27 +234,36 @@ function SearchResultsContent() {
   }, [isClient, searchParams]);
 
   const getLatestPrice = (carType: string): number => {
+  if (!tripInfo || typeof tripInfo !== 'object') {
+    console.log('[getLatestPrice] tripInfo is missing or not an object:', tripInfo);
+    return 0;
+  }
+
     try {
       const currentTripInfo = tripInfo || {};
       const currentDistance = distance || 100;
       const currentDays = days || 1;
       
       let basePrice = 0;
+      console.log('[getLatestPrice] tripInfo:', currentTripInfo);
       switch(carType.toLowerCase()) {
         case 'hatchback':
-          basePrice = currentTripInfo?.hatchback ? Number(currentTripInfo.hatchback) : tripInfo.tripinfo.hatchback*tripInfo.distance;
+          basePrice = currentTripInfo?.hatchback ? Number(currentTripInfo.hatchback) : 0;
           break;
         case 'sedan':
-          basePrice = currentTripInfo?.sedan ? Number(currentTripInfo.sedan) : "";
+          basePrice = currentTripInfo?.sedan ? Number(currentTripInfo.sedan) : 0;
           break;
         case 'sedan premium':
-          basePrice = currentTripInfo?.sedanpremium ? Number(currentTripInfo.sedanpremium) : "";
+          basePrice = currentTripInfo?.sedanpremium ? Number(currentTripInfo.sedanpremium) : 0;
           break;
         case 'suv':
-          basePrice = currentTripInfo?.suv ? Number(currentTripInfo.suv) : "";
+          basePrice = currentTripInfo?.suv ? Number(currentTripInfo.suv) : 0;
           break;
         case 'muv':
-          basePrice = currentTripInfo?.suvplus ? Number(currentTripInfo.suvplus) : "";
+          basePrice = currentTripInfo?.suvplus ? Number(currentTripInfo.suvplus) : 0;
+          break;
+        case 'ertiga':
+          basePrice = currentTripInfo?.ertiga ? Number(currentTripInfo.ertiga) : 0;
           break;
       }
 
@@ -256,6 +280,7 @@ function SearchResultsContent() {
         totalPrice = currentDistance * basePrice;
       }
 
+      console.log('[getLatestPrice] carType:', carType, 'basePrice:', basePrice, 'totalPrice:', totalPrice);
       return Math.round(totalPrice);
     } catch (error) {
       console.error('Error calculating price:', error);
@@ -277,8 +302,8 @@ function SearchResultsContent() {
   };
 
   const suvCars: Record<string, string> = {
-    "Innova": "/images/innova crystaa.jpg",
-    
+    "Innova": "/images/innova.jpg",
+    "Kia Carens": "/images/kia 3.jpeg"
   };
 
   const sedanPremiumCars: Record<string, string> = {
@@ -299,7 +324,12 @@ function SearchResultsContent() {
 
   const handleSUVChange = (carName: string) => {
     setSelectedSUV(carName);
-    setSelectedSUVImage(suvCars[carName]);
+    if (suvImageMap[carName]) {
+      setSelectedSUVImage(suvImageMap[carName]);
+    } else {
+      // Optional: fallback if carName is unexpected, though with radio buttons it should be one of the defined values.
+      // setSelectedSUVImage("/images/ertiga.jpg"); // Default for SUV category if needed
+    }
   };
 
   const handleSedanPremiumChange = (carName: string) => {
@@ -310,43 +340,123 @@ function SearchResultsContent() {
   const carTypes: Record<string, CarType> = {
     'Hatchback': {
       title: 'Hatchback',
-      subtitle: 'Compact Hatchback • Manual • Efficient',
+      // subtitle: 'Compact Hatchback • Manual • Efficient',
       image: selectedCarImage,
       priceKey: 'hatchback',
-      options: ['Maruti Wagonr', 'Toyota Glanza', 'Celerio']
+      options: ['Maruti Wagonr', 'Toyota Glanza', 'Celerio'],
+      renderOptions: (
+        <div className="flex gap-4 mt-2 mb-4">
+          {Object.entries(hatchbackCars).map(([name, img]) => (
+            <label key={name} className="flex items-center cursor-pointer gap-2">
+              <input
+                type="radio"
+                name="hatchback-selection"
+                value={name}
+                checked={selectedCar === name}
+                onChange={() => handleCarChange(name)}
+                className="custom-radio mr-1"
+              />
+              <span className="text-sm font-medium select-none">{name}</span>
+            </label>
+          ))}
+        </div>
+      )
     },
     'Sedan': {
       title: 'Sedan',
-      subtitle: ' • Manual • Sleek Design',
+      // subtitle: ' • Manual • Sleek Design',
       image: selectedSedanImage,
       priceKey: 'sedan',
-      options: ['Maruti Swift Dzire', 'Honda Amaze', 'Hyundai Aura/Xcent', 'Toyota etios']
+      options: ['Maruti Swift Dzire', 'Honda Amaze', 'Hyundai Aura/Xcent', 'Toyota etios'],
+      renderOptions: (
+        <div className="flex gap-4 mt-2 mb-4">
+          {Object.entries(sedanCars).map(([name, img]) => (
+            <label key={name} className="flex items-center cursor-pointer gap-2">
+              <input
+                type="radio"
+                name="sedan-selection"
+                value={name}
+                checked={selectedSedan === name}
+                onChange={() => handleSedanChange(name)}
+                className="custom-radio mr-1"
+              />
+              <span className="text-sm font-medium select-none">{name}</span>
+            </label>
+          ))}
+        </div>
+      )
     },
     'Sedan Premium': {
       title: 'Sedan Premium',
-      subtitle: 'Premium Sedan • Automatic • Luxury',
+      // subtitle: 'Premium Sedan • Automatic • Luxury',
       image: selectedSedanPremiumImage,
       priceKey: 'sedanpremium',
-      options: ['Honda City', 'Hyundai Verna', 'Maruti Ciaz']
+      options: ['Honda City', 'Hyundai Verna', 'Maruti Ciaz'],
+      renderOptions: (
+        <div className="flex gap-4 mt-2 mb-4">
+          {Object.entries(sedanPremiumCars).map(([name, img]) => (
+            <label key={name} className="flex items-center cursor-pointer gap-2">
+              <input
+                type="radio"
+                name="sedan-premium-selection"
+                value={name}
+                checked={selectedSedanPremium === name}
+                onChange={() => handleSedanPremiumChange(name)}
+                className="custom-radio mr-1"
+              />
+              <span className="text-sm font-medium select-none">{name}</span>
+            </label>
+          ))}
+        </div>
+      )
     },
     'MUV': {
       title: 'MUV',
-      subtitle: 'Economic MUV • Automatic • Premium',
-      image: '/images/ertiga.jpg',
+      // subtitle: 'Economic MUV • Automatic • Premium',
+      image: '/images/innova crystaa.jpg',
       priceKey: 'suvplus',
+    },
+    'Ertiga': {
+      title: 'Ertiga',
+      image: '/images/ertiga.jpg',
+      priceKey: 'ertiga',
     },
     'SUV': {
       title: 'SUV',
-      subtitle: 'Premium SUV • Automatic • Spacious',
       image: selectedSUVImage,
       priceKey: 'suv',
-     
+      options: ['Innova', 'Kia Carens'],
+      renderOptions: (
+        <div className="flex gap-6 mt-2 mb-4">
+          {['Innova', 'Kia Carens'].map((name) => {
+            const img = name === 'Innova' ? '/images/innova.jpg' : '/images/kia 3.jpeg';
+            return (
+              <label
+                key={name}
+                className={`flex items-center cursor-pointer rounded-lg px-3 py-2 mr-2 transition-colors border 
+                  ${selectedSUV === name ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-blue-600 border-blue-600 hover:bg-blue-50'}`}
+              >
+                <input
+                  type="radio"
+                  name="suv-selection"
+                  value={name}
+                  checked={selectedSUV === name}
+                  onChange={() => handleSUVChange(name)}
+                  className="custom-radio mr-2"
+                />
+                <img src={img} alt={name} className="w-12 h-8 object-cover rounded mr-2 border border-gray-300" />
+                <span className="text-sm font-medium">{name}</span>
+              </label>
+            );
+          })}
+        </div>
+      ),
     },
    
   };
 
   const displayedCars = selectedCategory === "All Cars" 
-    ? cabInfo 
+    ? cabInfo
     : cabInfo.filter(car => car.category === selectedCategory);
 
   const featureCards: FeatureCard[] = [
@@ -384,6 +494,9 @@ function SearchResultsContent() {
       <Navbar2 />
       <div className="container mx-auto px-4 pt-20 pb-8">
         <div className="grid grid-cols-1 gap-6">
+          {/* Show SUV radio buttons above SUV cards if SUV category is selected */}
+          {selectedCategory === 'SUV' && carTypes['SUV'].renderOptions}
+
           {displayedCars.map((car: Car, index) => {
             const price = getLatestPrice(car.type);
             const carInfo = carTypes[car.type as keyof typeof carTypes];
@@ -394,18 +507,19 @@ function SearchResultsContent() {
               <div key={index} className="bg-white rounded-xl overflow-hidden shadow-md">
                 <div className="flex flex-col md:flex-row">
                   <div className="relative w-full md:w-2/5 h-64">
-                    <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-blue-500/20">
+                    <div className="absolute inset-0 bg-white">
                       <img
                         src={car.type === "Hatchback" ? selectedCarImage : 
                              car.type === "Sedan" ? selectedSedanImage : 
                              car.type === "SUV" ? selectedSUVImage :
                              car.type === "Sedan Premium" ? selectedSedanPremiumImage :
-                             car.image || '/images/innova.jpg'}
+                             car.type === "Ertiga" ? '/images/ertiga.jpg' :
+                             car.image || '/images/Innova.png'}
                         alt={carInfo.title}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = '/images/innova.jpg';
+                          target.src = '/images/Innova.png';
                         }}
                       />
                     </div>
@@ -419,8 +533,8 @@ function SearchResultsContent() {
                   </div>
 
                   <div className="flex-1 p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex-1">
                         <h3 className="text-xl font-semibold">{carInfo.title}</h3>
                         <p className="text-gray-600 text-sm">{carInfo.subtitle}</p>
                         {car.type === "Hatchback" && (
@@ -500,9 +614,9 @@ function SearchResultsContent() {
                           </div>
                         )}
                       </div>
-                      <div className="text-right">
-                        <span className="text-green-600 text-sm">Limited Time Offer</span>
-                        <div className="text-2xl font-bold">₹{price}</div>
+                      <div className="flex flex-col items-end ml-8">
+                        <span className="text-green-600 text-xs mb-1">Limited Offer</span>
+                        <span className="inline-block bg-white text-black text-lg font-bold px-3 py-2 rounded shadow">₹{price}</span>
                       </div>
                     </div>
 

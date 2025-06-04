@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from 'react-icons/fa';
 // import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
-// import Navbar2 from '../../components/Navbar2';
+import Navbar2 from '@/components/Navbar2';
 import FloatingIcons from '@/components/FloatingIcons';
 
 const Contact = () => {
@@ -40,7 +40,9 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <>
+      <Navbar2 />
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       
       {/* Hero Section */}
       <div className="relative h-[40vh] bg-gradient-to-r from-blue-600 to-purple-600">
@@ -78,7 +80,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-800">Phone Number</h3>
-                    <p className="text-gray-600">+91 (123) 456-7890</p>
+                    <p className="text-gray-600">+91 9730545491</p>
                   </div>
                 </div>
 
@@ -182,7 +184,8 @@ const Contact = () => {
       </div>
       <FloatingIcons />
     </div>
+    </> 
   );
 };
 
-export default Contact; 
+export default Contact;

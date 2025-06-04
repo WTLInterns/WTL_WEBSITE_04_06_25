@@ -31,7 +31,7 @@ export default function LoginPage() {
       // Use your production API endpoint here.
       // The API is expected to receive a JSON body with "mobile" and "password"
       // even though a test URL example with query parameters is shown.
-      const response = await fetch('https://api.worldtriplink.com/auth/login1', {
+      const response = await fetch('http://localhost:8080/auth/login1', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,12 +64,25 @@ export default function LoginPage() {
         Cookies.set('userRole', role, { secure: true, sameSite: 'strict' });
 
         // Optionally, combine user info into one cookie object
-        const userData = {
+        let userData = {
           userId: data.userId,
           mobileNo,
           role,
           isLoggedIn: true,
+          // Add both name and username fields for compatibility
+          name: data.name || data.username || '',
+          username: data.username || data.name || '',
+          email: data.email || '',
         };
+        // Patch: If missing, try to fill from localStorage (from registration)
+        if (!userData.username || !userData.email) {
+          const regUsername = localStorage.getItem('reg_username');
+          const regEmail = localStorage.getItem('reg_email');
+          if (!userData.username && regUsername) userData.username = regUsername;
+          if (!userData.name && regUsername) userData.name = regUsername;
+          if (!userData.email && regEmail) userData.email = regEmail;
+        }
+        localStorage.setItem('user', JSON.stringify(userData));
         Cookies.set('user', JSON.stringify(userData), { secure: true, sameSite: 'strict' });
 
         // Show success message and redirect after a delay.

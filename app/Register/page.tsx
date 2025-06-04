@@ -208,7 +208,7 @@ export default function Register() {
       console.log('User object being sent:', userObject);
       
       // Directly call the backend API
-      const response = await fetch('https://api.worldtriplink.com/auth/register', {
+      const response = await fetch('http://localhost:8080/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -239,6 +239,9 @@ export default function Register() {
         // Save user information to localStorage for profile display
         localStorage.setItem('username', formData.username);
         localStorage.setItem('email', formData.email);
+        // Patch: Save registration info for login autofill workaround
+        localStorage.setItem('reg_username', formData.username);
+        localStorage.setItem('reg_email', formData.email);
         localStorage.setItem('mobileNo', formData.phone);
         localStorage.setItem('userRole', formData.role.toUpperCase());
         localStorage.setItem('address', formData.address || '');

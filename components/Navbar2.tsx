@@ -155,13 +155,14 @@ const Navbar2 = () => {
 
   // Navigation items - dynamic based on login status
   const navItems = [
-    ...(user?.isLoggedIn || user?.username 
-      ? [{ name: 'Logout', action: () => setShowLogoutConfirmation(true) }] 
-      : [{ name: 'Login', href: '/login' }]),
+    { name: 'Home', href: '/' },
     { name: 'My Trip', href: '/my-trip' },
     { name: 'About', href: '/about' },
     { name: 'Service', href: '/service' },
     { name: 'Contact', href: '/contact' },
+    ...(user?.isLoggedIn || user?.username 
+      ? [{ name: 'Logout', action: () => setShowLogoutConfirmation(true) }] 
+      : [{ name: 'Login', href: '/login' }]),
   ];
 
   // User profile modal component

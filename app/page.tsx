@@ -16,6 +16,7 @@ import Footer from "@/components/footer"
 import Navbar2 from "../components/Navbar2"
 import FloatingIcons from "@/components/FloatingIcons"
 import Link from "next/link"
+import MarqueeText from "@/components/MarqueeText"
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
@@ -106,6 +107,10 @@ export default function Home() {
             {/* Navbar */}
             <div className="mt-16 px-4">
               <Navbar onTabChange={handleTabChange} />
+            </div>
+            
+            <div className="mt-4">
+              <MarqueeText />
             </div>
          
             {/* Booking Form Container */}

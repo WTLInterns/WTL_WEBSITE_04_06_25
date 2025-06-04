@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import Script from "next/script"
+import Cookies from "js-cookie" // Use cookies for login state, matching Navbar2
 
 interface TimeSlot {
   id: string
@@ -36,7 +37,63 @@ declare global {
   }
 }
 
+import './CabBookingForm.css';
 export default function CabBookingForm() {
+  // All useState declarations at the top!
+  const pickupDateRef = useRef<HTMLInputElement>(null);
+  const returnDateRef = useRef<HTMLInputElement>(null);
+  const pickupTimeRef = useRef<HTMLInputElement>(null);
+  // All useState declarations at the top!
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [showPopup, setShowPopup] = useState(false); // <-- single source of truth
+  // Helper to check login state from cookie (matching Navbar2)
+const checkLoginState = () => {
+  let loggedIn = false;
+  const userStr = Cookies.get('user');
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      loggedIn = user.isLoggedIn === true;
+    } catch {}
+  }
+  return loggedIn;
+};
+
+useEffect(() => {
+  setLoading(true);
+  // Wait 200ms to allow login to write to localStorage
+  const timeout = setTimeout(() => {
+    setIsLoggedIn(checkLoginState());
+    setLoading(false);
+  }, 200);
+  return () => clearTimeout(timeout);
+}, []);
+
+// Listen for localStorage changes (login/logout in other tabs or after login)
+useEffect(() => {
+  const handleStorage = () => {
+    setIsLoggedIn(checkLoginState());
+  };
+  window.addEventListener('storage', handleStorage);
+  return () => window.removeEventListener('storage', handleStorage);
+}, []);
+
+// If user logs in while popup is open, close the popup
+useEffect(() => {
+  if (isLoggedIn && showPopup) {
+    setShowPopup(false);
+  }
+}, [isLoggedIn, showPopup]);
+
+// Defensive: forcibly close popup if login state flips true
+useEffect(() => {
+  if (isLoggedIn && showPopup) {
+    setShowPopup(false);
+    console.log('[DEBUG] Forced popup close due to login state.');
+  }
+}, [isLoggedIn]);
+
   const router = useRouter()
   const [tripType, setTripType] = useState("oneWay")
   const [pickupLocation, setPickupLocation] = useState("")
@@ -52,7 +109,7 @@ export default function CabBookingForm() {
   const [availableTimeSlots, setAvailableTimeSlots] = useState<TimeSlot[]>([])
   const [isLoadingTimeSlots, setIsLoadingTimeSlots] = useState(false)
 
-  const [showPopup, setShowPopup] = useState(false)
+  
   const [userName, setUserName] = useState("")
   const [mobileNumber, setMobileNumber] = useState("")
 
@@ -279,7 +336,7 @@ export default function CabBookingForm() {
     try {
       console.log("Calculating distance between:", origin, "and", destination)
 
-      const response = await fetch("https://api.worldtriplink.com/api/cab1", {
+      const response = await fetch("http://localhost:8080/api/cab1", {
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -318,37 +375,51 @@ export default function CabBookingForm() {
   }
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setError("")
+    e.preventDefault();
+    setError("");
 
     if (!pickupLocation) {
-      setError("Please enter pickup location")
-      return
+      setError("Please enter pickup location");
+      return;
     }
     if (!dropLocation) {
-      setError("Please enter drop location")
-      return
+      setError("Please enter drop location");
+      return;
     }
     if (!pickupDate) {
-      setError("Please select pickup date")
-      return
+      setError("Please select pickup date");
+      return;
     }
     if (tripType === "roundTrip" && !Returndate) {
-      setError("Please select return date")
-      return
+      setError("Please select return date");
+      return;
     }
     if (!pickupTime) {
-      setError("Please select pickup time")
-      return
+      setError("Please select pickup time");
+      return;
     }
 
     try {
-      const distance = await calculateDistance(pickupLocation, dropLocation)
-      // Show popup instead of navigating immediately
-      setShowPopup(true)
+      const distance = await calculateDistance(pickupLocation, dropLocation);
+      if (isLoggedIn) {
+        // Go directly to search results if logged in
+        const searchParams = new URLSearchParams({
+          pickup: pickupLocation,
+          drop: dropLocation,
+          date: pickupDate,
+          time: pickupTime,
+          tripType: tripType,
+          Returndate: Returndate || "",
+          distance: distance ? distance.toString() : "0",
+        });
+        router.push(`/search?${searchParams.toString()}`);
+      } else {
+        // Only show popup if not logged in (double check state)
+        if (!isLoggedIn) setShowPopup(true);
+      }
     } catch (error) {
-      console.error("Error submitting booking:", error)
-      setError("Failed to submit booking. Please try again.")
+      console.error("Error submitting booking:", error);
+      setError("Failed to submit booking. Please try again.");
     }
   }
 
@@ -507,29 +578,28 @@ export default function CabBookingForm() {
             <div>
               <label className="block text-sm font-medium text-white mb-1">Pickup Date</label>
               <div className="relative">
-                <input
-                  id="pickupDate"
-                  type="date"
-                  value={pickupDate}
-                  onChange={(e) => handleDateSelection(e.target.value, "pickup")}
-                  min={today}
-                  className="w-full p-3 pl-10 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/20 text-white [&::-webkit-calendar-picker-indicator]:opacity-0"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => openDatePicker("pickupDate")}
-                  className="absolute inset-y-0 left-0 pl-3 flex items-center text-white/70 hover:text-white"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </button>
+                <div className="relative">
+  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+    <svg className="h-5 w-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  </span>
+  <input
+    id="pickupDate"
+    type="date"
+    value={pickupDate}
+    onChange={(e) => handleDateSelection(e.target.value, "pickup")}
+    min={today}
+    className="w-full p-3 pl-10 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/20 text-white hide-native-picker"
+    required
+    ref={pickupDateRef}
+    onClick={() => {
+      if (pickupDateRef.current && typeof pickupDateRef.current.showPicker === 'function') {
+        pickupDateRef.current.showPicker();
+      }
+    }}
+  />
+</div>
               </div>
             </div>
 
@@ -538,29 +608,28 @@ export default function CabBookingForm() {
               <div>
                 <label className="block text-sm font-medium text-white mb-1">Return Date</label>
                 <div className="relative">
-                  <input
-                    id="Returndate"
-                    type="date"
-                    value={Returndate}
-                    onChange={(e) => handleDateSelection(e.target.value, "return")}
-                    min={pickupDate || today}
-                    className="w-full p-3 pl-10 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/20 text-white [&::-webkit-calendar-picker-indicator]:opacity-0"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => openDatePicker("Returndate")}
-                    className="absolute inset-y-0 left-0 pl-3 flex items-center text-white/70 hover:text-white"
-                  >
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </button>
+                  <div className="relative">
+  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+    <svg className="h-5 w-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  </span>
+  <input
+    id="Returndate"
+    type="date"
+    value={Returndate}
+    onChange={(e) => handleDateSelection(e.target.value, "return")}
+    min={pickupDate || today}
+    className="w-full p-3 pl-10 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/20 text-white hide-native-picker"
+    required
+    ref={returnDateRef}
+    onClick={() => {
+      if (returnDateRef.current && typeof returnDateRef.current.showPicker === 'function') {
+        returnDateRef.current.showPicker();
+      }
+    }}
+  />
+</div>
                 </div>
               </div>
             )}
@@ -569,31 +638,27 @@ export default function CabBookingForm() {
             <div>
               <label className="block text-sm font-medium text-white mb-1">Pickup Time</label>
               <div className="relative">
-                <input
-                  id="pickupTime"
-                  type="time"
-                  value={pickupTime}
-                  onChange={(e) => setPickupTime(e.target.value)}
-                  className="w-full p-3 pl-10 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/20 text-white opacity-0 absolute inset-0 cursor-pointer"
-                  required
-                />
-                <div className="w-full p-3 border border-white/20 rounded-lg bg-white/20 text-white">
-                  <button
-                    type="button"
-                    onClick={() => openTimePicker("pickupTime")}
-                    className="absolute inset-y-0 left-0 pl-3 flex items-center text-white/70 hover:text-white"
-                  >
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </button>
-                  <span className="pl-10 text-white">{pickupTime ? formatTime(pickupTime) : "Select Time"}</span>
-                </div>
+                <div className="relative">
+  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+    <svg className="h-5 w-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  </span>
+  <input
+    id="pickupTime"
+    type="time"
+    value={pickupTime}
+    onChange={(e) => setPickupTime(e.target.value)}
+    className="w-full p-3 pl-10 border border-white/20 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent bg-white/20 text-white hide-native-picker"
+    required
+    ref={pickupTimeRef}
+    onClick={() => {
+      if (pickupTimeRef.current && typeof pickupTimeRef.current.showPicker === 'function') {
+        pickupTimeRef.current.showPicker();
+      }
+    }}
+  />
+</div>
                 {isLoadingTimeSlots && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -615,7 +680,7 @@ export default function CabBookingForm() {
           </div>
         </div>
       </form>
-      {showPopup && (
+      {!loading && (showPopup && !isLoggedIn) && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-slate-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
             <h3 className="text-xl font-bold text-white mb-4">Enter Your Details</h3>

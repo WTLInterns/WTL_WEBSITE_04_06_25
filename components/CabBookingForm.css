@@ -1,0 +1,17 @@
+/* Hide default browser calendar/clock icons for date and time inputs */
+.hide-native-picker::-webkit-calendar-picker-indicator,
+.hide-native-picker::-webkit-clear-button {
+  display: none !important;
+}
+.hide-native-picker::-ms-clear {
+  display: none !important;
+}
+.hide-native-picker::-moz-clear {
+  display: none !important;
+}
+.hide-native-picker[type="date"],
+.hide-native-picker[type="time"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: textfield;
+}
